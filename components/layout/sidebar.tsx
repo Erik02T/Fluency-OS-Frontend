@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Home,
@@ -34,6 +34,9 @@ import { useAdminAuth } from "@/contexts/admin-auth-context"
 
 const FEATURE_ICON_MAP = {
   home: Home,
+  review: Zap,
+  study: BookOpen,
+  ai: Brain,
   kanji: Languages,
   admin: Shield,
   auth: LogIn,
@@ -50,12 +53,13 @@ const FEATURE_STATUS_LABEL = {
 } as const
 
 const quickActions = [
-  { name: "Review", icon: Zap, kanji: "復", color: "text-[var(--torii-red)]" },
-  { name: "AI Tutor", icon: Brain, kanji: "智", color: "text-[var(--gold)]" },
+  { name: "Review", icon: Zap, kanji: "復", color: "text-[var(--torii-red)]", href: "/dashboard/review" },
+  { name: "AI Tutor", icon: Brain, kanji: "智", color: "text-[var(--gold)]", href: "/dashboard/ai" },
 ]
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const { sidebarOpen, toggleSidebar, toggleCommandPalette } = useUIStore()
   const { isAuthenticated, isAdmin } = useAdminAuth()
   const navigation = React.useMemo(
@@ -159,6 +163,7 @@ export function Sidebar() {
             <Button
               key={action.name}
               variant="ghost"
+              onClick={() => router.push(action.href)}
               className={cn(
                 "flex-1 h-auto py-3 flex-col gap-1 bg-sidebar-accent/30 hover:bg-sidebar-accent border border-sidebar-border/50",
                 !sidebarOpen && "p-2"

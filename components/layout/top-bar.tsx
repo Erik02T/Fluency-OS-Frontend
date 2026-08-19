@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Search,
@@ -25,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useUIStore } from "@/store"
 import { useAdminAuth } from "@/contexts/admin-auth-context"
+import { getReviewQueueCount } from "@/lib/review-api"
 
 interface TopBarProps {
   title?: string
@@ -33,8 +35,33 @@ interface TopBarProps {
 }
 
 export function TopBar({ title = "Dashboard", subtitle, kanji }: TopBarProps) {
+  const router = useRouter()
   const { toggleCommandPalette, sidebarOpen } = useUIStore()
   const { user, isAuthenticated, signOut } = useAdminAuth()
+  const [reviewCount, setReviewCount] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    let isMounted = true
+
+    async function loadReviewCount() {
+      try {
+        const payload = await getReviewQueueCount()
+        if (isMounted) {
+          setReviewCount(payload.total)
+        }
+      } catch {
+        if (isMounted) {
+          setReviewCount(null)
+        }
+      }
+    }
+
+    void loadReviewCount()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   async function handleSignOut() {
     await signOut()
@@ -83,16 +110,19 @@ export function TopBar({ title = "Dashboard", subtitle, kanji }: TopBarProps) {
           {/* Review Button */}
           <Button
             variant="default"
+            onClick={() => router.push("/dashboard/review")}
             className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white gap-2 h-9"
           >
             <Zap className="h-4 w-4" />
             <span className="hidden sm:inline">Revisar</span>
-            <Badge
-              variant="secondary"
-              className="bg-white/20 text-white text-[10px] px-1.5"
-            >
-              42
-            </Badge>
+            {reviewCount !== null && reviewCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="bg-white/20 text-white text-[10px] px-1.5"
+              >
+                {reviewCount}
+              </Badge>
+            )}
           </Button>
 
           {/* Notifications */}

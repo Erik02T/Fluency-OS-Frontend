@@ -37,6 +37,24 @@ const navigationCommands = [
     kanji: "家",
   },
   {
+    name: "Revisão SRS",
+    href: "/dashboard/review",
+    icon: Zap,
+    kanji: "復",
+  },
+  {
+    name: "Estudo",
+    href: "/dashboard/study",
+    icon: BookOpen,
+    kanji: "習",
+  },
+  {
+    name: "AI Tutor",
+    href: "/dashboard/ai",
+    icon: Brain,
+    kanji: "智",
+  },
+  {
     name: "Kanji Database",
     href: "/dashboard/kanji",
     icon: Languages,
@@ -86,7 +104,8 @@ const quickActions = [
     action: "review",
     icon: Zap,
     kanji: "復",
-    description: "42 cards pendentes",
+    description: "Revisar cards pendentes",
+    href: "/dashboard/review",
   },
   {
     name: "AI Tutor",
@@ -94,6 +113,7 @@ const quickActions = [
     icon: Brain,
     kanji: "智",
     description: "Tire suas dúvidas",
+    href: "/dashboard/ai",
   },
 ]
 
@@ -148,6 +168,7 @@ export function CommandPalette() {
             {quickActions.map((action) => (
               <CommandItem
                 key={action.name}
+                onSelect={() => handleSelect(action.href)}
                 className="flex items-center gap-3 py-3 cursor-pointer"
               >
                 <div className="w-9 h-9 rounded-lg bg-[var(--torii-red)]/10 flex items-center justify-center">
@@ -191,6 +212,7 @@ export function CommandPalette() {
             {recentKanji.map((item) => (
               <CommandItem
                 key={item.kanji}
+                onSelect={() => handleSelect("/dashboard/kanji")}
                 className="flex items-center gap-3 py-2 cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[var(--gold)]/10 to-transparent border border-[var(--gold)]/20 flex items-center justify-center">

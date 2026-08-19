@@ -3,6 +3,9 @@ export type NavigationFeatureStatus = "live" | "beta" | "coming-soon"
 export interface NavigationFeature {
   id:
     | "dashboard"
+    | "review"
+    | "study"
+    | "ai"
     | "kanji"
     | "admin-kanji"
     | "admin-vocabulary"
@@ -19,7 +22,19 @@ export interface NavigationFeature {
   href: string
   kanji: string
   description: string
-  icon: "home" | "kanji" | "admin" | "auth" | "book" | "grammar" | "immersion" | "planner" | "analytics"
+  icon:
+    | "home"
+    | "review"
+    | "study"
+    | "ai"
+    | "kanji"
+    | "admin"
+    | "auth"
+    | "book"
+    | "grammar"
+    | "immersion"
+    | "planner"
+    | "analytics"
   status: NavigationFeatureStatus
   visibleInSidebar: boolean
   /** Quando true, item só aparece para usuários com role ADMIN. */
@@ -37,6 +52,26 @@ export const NAVIGATION_FEATURES: NavigationFeature[] = [
     kanji: "家",
     description: "Centro de comando",
     icon: "home",
+    status: "live",
+    visibleInSidebar: true,
+  },
+  {
+    id: "review",
+    name: "Revisão",
+    href: "/dashboard/review",
+    kanji: "復",
+    description: "Fila de SRS",
+    icon: "review",
+    status: "live",
+    visibleInSidebar: true,
+  },
+  {
+    id: "study",
+    name: "Estudo",
+    href: "/dashboard/study",
+    kanji: "習",
+    description: "Itens em estudo",
+    icon: "study",
     status: "live",
     visibleInSidebar: true,
   },
