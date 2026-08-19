@@ -27,10 +27,19 @@ export interface ReviewQueueKanjiItemDto {
   frequency?: number
 }
 
+export interface ReviewQueueVocabularyItemDto {
+  id: string
+  word: string
+  reading: string
+  meanings: string[]
+  jlpt?: string | null
+  partOfSpeech?: string | null
+}
+
 export interface ReviewQueueItemDto {
   progress_id: string
   item_type: ReviewItemType
-  item: ReviewQueueKanjiItemDto | Record<string, unknown>
+  item: ReviewQueueKanjiItemDto | ReviewQueueVocabularyItemDto | Record<string, unknown>
   srs_level: number
   last_reviewed_at: string | null
   next_review_at: string
@@ -43,6 +52,7 @@ export interface ReviewQueueResponseDto {
   by_type: {
     kanji: number
     vocabulary: number
+    grammar: number
   }
 }
 

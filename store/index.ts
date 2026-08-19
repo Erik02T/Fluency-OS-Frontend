@@ -151,6 +151,7 @@ interface ReviewState {
   setLastStats: (stats: ReviewSessionStatsResponseDto | null) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
+  setCurrentIndex: (index: number) => void
   nextCard: () => void
   resetSession: () => void
 }
@@ -275,6 +276,7 @@ export const useReviewStore = create<ReviewState>((set) => ({
   setLastStats: (lastStats) => set({ lastStats }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+  setCurrentIndex: (currentIndex) => set({ currentIndex }),
   nextCard: () =>
     set((state) => ({
       currentIndex: state.currentIndex + 1,

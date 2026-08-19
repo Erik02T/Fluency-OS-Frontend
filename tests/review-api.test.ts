@@ -41,7 +41,7 @@ describe("review-api auth retry", () => {
           JSON.stringify({
             total_due: 0,
             items: [],
-            by_type: { kanji: 0, vocabulary: 0 },
+            by_type: { kanji: 0, vocabulary: 0, grammar: 0 },
           }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
