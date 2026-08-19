@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   ArrowLeft,
@@ -59,6 +59,7 @@ function LoadingState() {
 }
 
 export default function KanjiDetailPage() {
+  const router = useRouter()
   const params = useParams<{ id: string }>()
   const id = params?.id
   const [kanji, setKanji] = React.useState<KanjiDetailResponseDto | null>(null)
@@ -116,6 +117,7 @@ export default function KanjiDetailPage() {
     try {
       await studyKanji(kanji.id)
       setActionFeedback("Kanji adicionado ao estudo")
+      router.push("/dashboard/study")
     } catch (err) {
       setActionError(getErrorMessage(err))
     } finally {
@@ -131,6 +133,7 @@ export default function KanjiDetailPage() {
     try {
       await sendKanjiToReview(kanji.id)
       setActionFeedback("Kanji enviado para review")
+      router.push("/dashboard/review")
     } catch (err) {
       setActionError(getErrorMessage(err))
     } finally {

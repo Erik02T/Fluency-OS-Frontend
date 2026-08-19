@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   BookOpen,
@@ -134,6 +135,7 @@ function LoadingRows() {
 }
 
 export default function VocabPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedJlpt, setSelectedJlpt] = React.useState<"all" | JLPTLevel>("all")
   const [selectedTag, setSelectedTag] = React.useState<string>("all")
@@ -309,8 +311,14 @@ export default function VocabPage() {
           description:
             action === "study"
               ? "O item entrou no seu progresso de estudo."
-              : "O nível SRS foi atualizado a partir da revisão.",
+              : "O item foi enviado para a fila de revisão.",
         })
+
+        if (action === "study") {
+          router.push("/dashboard/study")
+        } else {
+          router.push("/dashboard/review")
+        }
       } catch (error) {
         toast({
           title: "Falha ao atualizar progresso",
@@ -321,7 +329,7 @@ export default function VocabPage() {
         setProgressLoadingId((current) => (current === id ? null : current))
       }
     },
-    [applyProgressResponse],
+    [applyProgressResponse, router],
   )
 
   return (
