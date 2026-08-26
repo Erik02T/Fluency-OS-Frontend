@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   ArrowRight,
@@ -544,6 +545,7 @@ function KanjiResultCard({
   kanji: KanjiListItemDto
   viewMode: ViewMode
 }) {
+  const router = useRouter()
   const isGrid = viewMode === "grid"
   const [isStudying, setIsStudying] = React.useState(false)
   const [isReviewing, setIsReviewing] = React.useState(false)
@@ -560,6 +562,7 @@ function KanjiResultCard({
     try {
       await studyKanji(kanji.id)
       setFeedback("Adicionado ao estudo")
+      router.push("/dashboard/study")
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -577,6 +580,7 @@ function KanjiResultCard({
     try {
       await sendKanjiToReview(kanji.id)
       setFeedback("Enviado para review")
+      router.push("/dashboard/review")
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {

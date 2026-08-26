@@ -10,7 +10,6 @@ import {
   X,
   Brain,
   Clock,
-  Play,
   Loader2,
   AlertCircle,
   Sparkles,
@@ -29,6 +28,7 @@ import {
   abandonReviewSession,
   type ReviewQueueItemDto,
   type ReviewQueueKanjiItemDto,
+  type ReviewQueueVocabularyItemDto,
 } from "@/lib/review-api"
 import { useReviewStore } from "@/store"
 
@@ -46,8 +46,12 @@ const itemVariants = {
   show: { opacity: 1, y: 0 },
 }
 
-function isKanjiItem(item: ReviewQueueKanjiItemDto | Record<string, unknown>): item is ReviewQueueKanjiItemDto {
+function isKanjiItem(item: ReviewQueueItemDto["item"]): item is ReviewQueueKanjiItemDto {
   return "character" in item
+}
+
+function isVocabularyItem(item: ReviewQueueItemDto["item"]): item is ReviewQueueVocabularyItemDto {
+  return "word" in item
 }
 
 function formatAnswerTime(ms: number | null | undefined): string {
@@ -67,12 +71,14 @@ interface QueueViewProps {
   items: ReviewQueueItemDto[]
   isLoading: boolean
   error: string | null
-  onStart: () => void
+  onStart: (sessionType: "kanji" | "vocabulary") => void
   onReload: () => void
 }
 
 function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProps) {
   const total = items.length
+  const kanjiCount = items.filter((i) => i.item_type === "kanji").length
+  const vocabCount = items.filter((i) => i.item_type === "vocabulary").length
 
   return (
     <motion.div
@@ -97,6 +103,16 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                       ? `${total} ${total === 1 ? "card pendente" : "cards pendentes"} de revisão`
                       : "Nenhum card pendente agora"}
                   </p>
+                  {total > 0 && (
+                    <div className="flex gap-2 mt-2">
+                      <Badge variant="outline" className="text-[10px]">
+                        字 {kanjiCount}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        語 {vocabCount}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -160,6 +176,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
               <div className="space-y-2">
                 {items.slice(0, 8).map((item) => {
                   const kanji = isKanjiItem(item.item) ? item.item : null
+                  const vocab = isVocabularyItem(item.item) ? item.item : null
                   return (
                     <div
                       key={item.progress_id}
@@ -167,17 +184,27 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                     >
                       <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
                         <span className="font-japanese text-lg text-foreground">
-                          {kanji?.character ?? "字"}
+                          {kanji?.character ?? (vocab ? vocab.word.charAt(0) : "字")}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {kanji?.meanings.join(", ") ?? "Item"}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {vocab && (
+                            <span className="font-japanese text-sm font-semibold text-foreground shrink-0">
+                              {vocab.word}
+                            </span>
+                          )}
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {(kanji?.meanings.join(", ") ?? vocab?.meanings.join(", ") ?? "Item")}
+                          </p>
+                        </div>
                         <p className="text-[10px] text-muted-foreground font-mono">
-                          {kanji?.readings.onyomi.join("、") || kanji?.readings.kunyomi.join("、") || "—"}
+                          {kanji?.readings.onyomi.join("、") || kanji?.readings.kunyomi.join("、") || (vocab?.reading ?? "—")}
                         </p>
                       </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {item.item_type}
+                      </Badge>
                       <Badge variant="outline" className="text-[10px] shrink-0">
                         Nível {item.srs_level}
                       </Badge>
@@ -195,18 +222,33 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
         </Card>
       </motion.div>
 
-      {/* Botão Iniciar */}
+      {/* Botões Iniciar por Tipo */}
       {!isLoading && items.length > 0 && (
-        <motion.div variants={itemVariants}>
-          <Button
-            onClick={onStart}
-            disabled={isLoading}
-            className="w-full py-6 bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white text-base font-medium"
-          >
-            <Play className="h-5 w-5 mr-2" />
-            Iniciar Revisão
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
+        <motion.div variants={itemVariants} className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {kanjiCount > 0 && (
+              <Button
+                onClick={() => onStart("kanji")}
+                disabled={isLoading}
+                className="w-full py-5 bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white text-base font-medium"
+              >
+                <span className="font-japanese text-xl mr-2">字</span>
+                Revisar Kanji ({kanjiCount})
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+            {vocabCount > 0 && (
+              <Button
+                onClick={() => onStart("vocabulary")}
+                disabled={isLoading}
+                className="w-full py-5 bg-[var(--teal)] hover:bg-[var(--teal)]/90 text-white text-base font-medium"
+              >
+                <span className="font-japanese text-xl mr-2">語</span>
+                Revisar Vocabulário ({vocabCount})
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+          </div>
         </motion.div>
       )}
     </motion.div>
@@ -240,6 +282,7 @@ function SessionView({
   onAbandon,
 }: SessionViewProps) {
   const kanji = isKanjiItem(item.item) ? item.item : null
+  const vocab = isVocabularyItem(item.item) ? item.item : null
   const [showAnswer, setShowAnswer] = React.useState(false)
   const [startTime] = React.useState(() => Date.now())
 
@@ -247,6 +290,10 @@ function SessionView({
     const responseTimeMs = Date.now() - startTime
     onAnswer(quality, responseTimeMs)
   }
+
+  const prompt = vocab
+    ? "Tente lembrar o significado desta palavra."
+    : "Tente lembrar o significado e as leituras deste kanji."
 
   return (
     <motion.div
@@ -267,6 +314,9 @@ function SessionView({
                 </span>
                 <Badge variant="outline" className="text-[10px]">
                   Nível {item.srs_level}
+                </Badge>
+                <Badge variant="outline" className="text-[10px]">
+                  {item.item_type}
                 </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
@@ -301,16 +351,24 @@ function SessionView({
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-8">
             <div className="flex flex-col items-center text-center">
-              <div className="w-24 h-24 rounded-2xl bg-secondary flex items-center justify-center mb-6">
-                <span className="font-japanese text-6xl text-foreground">
-                  {kanji?.character ?? "字"}
-                </span>
-              </div>
+              {kanji ? (
+                <div className="w-24 h-24 rounded-2xl bg-secondary flex items-center justify-center mb-6">
+                  <span className="font-japanese text-6xl text-foreground">
+                    {kanji.character}
+                  </span>
+                </div>
+              ) : (
+                <div className="min-w-[220px] max-w-full px-8 py-4 rounded-2xl bg-secondary flex items-center justify-center mb-6">
+                  <span className="font-japanese text-5xl text-foreground whitespace-nowrap">
+                    {vocab?.word ?? "復"}
+                  </span>
+                </div>
+              )}
 
               {!showAnswer ? (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Tente lembrar o significado e as leituras deste kanji.
+                    {prompt}
                   </p>
                   <Button
                     onClick={() => setShowAnswer(true)}
@@ -327,7 +385,7 @@ function SessionView({
                       Significados
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {kanji?.meanings.map((m) => (
+                      {(kanji?.meanings ?? vocab?.meanings ?? []).map((m) => (
                         <Badge key={m} variant="secondary" className="text-sm">
                           {m}
                         </Badge>
@@ -335,24 +393,37 @@ function SessionView({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
+                  {vocab?.reading && (
+                    <div className="space-y-2">
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Onyomi
+                        Leitura
                       </p>
                       <p className="text-sm font-mono text-foreground">
-                        {kanji?.readings.onyomi.join("、") || "—"}
+                        {vocab.reading}
                       </p>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider">
-                        Kunyomi
-                      </p>
-                      <p className="text-sm font-mono text-foreground">
-                        {kanji?.readings.kunyomi.join("、") || "—"}
-                      </p>
+                  )}
+
+                  {kanji && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          Onyomi
+                        </p>
+                        <p className="text-sm font-mono text-foreground">
+                          {kanji.readings.onyomi.join("、") || "—"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider">
+                          Kunyomi
+                        </p>
+                        <p className="text-sm font-mono text-foreground">
+                          {kanji.readings.kunyomi.join("、") || "—"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="pt-4 border-t border-border/50">
                     <p className="text-xs text-muted-foreground mb-3">
@@ -511,6 +582,8 @@ export default function ReviewPage() {
     setCurrentSession,
     syncSessionProgress,
     syncSessionState,
+    setQueue,
+    setCurrentIndex,
     setLastStats,
     setLoading,
     setError,
@@ -538,20 +611,28 @@ export default function ReviewPage() {
     void loadQueue()
   }, [loadQueue])
 
-  const handleStart = React.useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const session = await createReviewSession({ session_type: "kanji" })
-      setCurrentSession(session)
-      syncSessionState(session)
-      setView("session")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao iniciar sessão")
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError, setCurrentSession, syncSessionState])
+  const handleStart = React.useCallback(
+    async (sessionType: "kanji" | "vocabulary") => {
+      setLoading(true)
+      setError(null)
+      try {
+        const session = await createReviewSession({ session_type: sessionType })
+        // Filtra a fila apenas para o tipo da sessão iniciada
+        // para que o avanço automático percorra somente itens do tipo escolhido
+        const filteredQueue = queue.filter((i) => i.item_type === sessionType)
+        setQueue(filteredQueue)
+        setCurrentIndex(0)
+        setCurrentSession(session)
+        syncSessionState(session)
+        setView("session")
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Falha ao iniciar sessão")
+      } finally {
+        setLoading(false)
+      }
+    },
+    [queue, setQueue, setCurrentIndex, setLoading, setError, setCurrentSession, syncSessionState],
+  )
 
   const handleAnswer = React.useCallback(
     async (quality: number, responseTimeMs: number) => {

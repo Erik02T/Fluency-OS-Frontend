@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   Flame,
@@ -94,6 +95,7 @@ const generateHeatmapData = () => {
 const heatmapData = generateHeatmapData()
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [summary, setSummary] = React.useState<DashboardSummaryDto | null>(null)
   const [isLoadingSummary, setIsLoadingSummary] = React.useState(true)
   const [summaryError, setSummaryError] = React.useState<string | null>(null)
@@ -140,6 +142,7 @@ export default function DashboardPage() {
         color: "from-orange-500/20 to-red-500/20",
         iconColor: "text-orange-500",
         kanji: "継",
+        href: "/dashboard/analytics",
       },
       {
         title: "Kanji Aprendidos",
@@ -151,6 +154,7 @@ export default function DashboardPage() {
         color: "from-[var(--gold)]/20 to-amber-500/20",
         iconColor: "text-[var(--gold)]",
         kanji: "字",
+        href: "/dashboard/kanji",
       },
       {
         title: "Reviews Pendentes",
@@ -162,6 +166,7 @@ export default function DashboardPage() {
         color: "from-[var(--torii-red)]/20 to-rose-500/20",
         iconColor: "text-[var(--torii-red)]",
         kanji: "復",
+        href: "/dashboard/review",
       },
       {
         title: "Precisão Geral",
@@ -173,6 +178,7 @@ export default function DashboardPage() {
         color: "from-[var(--neon-blue)]/20 to-blue-500/20",
         iconColor: "text-[var(--neon-blue)]",
         kanji: "時",
+        href: "/dashboard/review",
       },
     ],
     [isLoadingSummary, summary],
@@ -236,9 +242,16 @@ export default function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {statsCards.map((stat, index) => (
-            <motion.div key={stat.title} variants={itemVariants}>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-colors">
+          {statsCards.map((stat) => (
+            <motion.div
+              key={stat.title}
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="cursor-pointer"
+              onClick={() => router.push(stat.href)}
+            >
+              <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-colors h-full">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -301,6 +314,7 @@ export default function DashboardPage() {
                         key={action.title}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
+                        onClick={() => router.push(action.href)}
                         className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/50 transition-colors group"
                       >
                         <div
@@ -514,7 +528,12 @@ export default function DashboardPage() {
                       <Languages className="h-4 w-4 text-[var(--gold)]" />
                       Kanji Recentes
                     </CardTitle>
-                    <Button variant="ghost" size="sm" className="text-xs">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => router.push("/dashboard/kanji")}
+                    >
                       Ver todos
                       <ChevronRight className="h-3 w-3 ml-1" />
                     </Button>
@@ -529,6 +548,7 @@ export default function DashboardPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.05 }}
                         whileHover={{ scale: 1.05 }}
+                        onClick={() => router.push("/dashboard/kanji")}
                         className="flex flex-col items-center p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/50 cursor-pointer transition-colors group"
                       >
                         <span className="font-japanese text-2xl text-foreground group-hover:text-[var(--gold)] transition-colors">
@@ -568,6 +588,7 @@ export default function DashboardPage() {
                       </p>
                       <Button
                         size="sm"
+                        onClick={() => router.push("/dashboard/ai")}
                         className="bg-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/90 text-white text-xs"
                       >
                         <Play className="h-3 w-3 mr-1" />
