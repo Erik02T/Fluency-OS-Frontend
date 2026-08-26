@@ -184,13 +184,20 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                     >
                       <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
                         <span className="font-japanese text-lg text-foreground">
-                          {kanji?.character ?? vocab?.word ?? "字"}
+                          {kanji?.character ?? (vocab ? vocab.word.charAt(0) : "字")}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {(kanji?.meanings.join(", ") ?? vocab?.meanings.join(", ") ?? "Item")}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          {vocab && (
+                            <span className="font-japanese text-sm font-semibold text-foreground shrink-0">
+                              {vocab.word}
+                            </span>
+                          )}
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {(kanji?.meanings.join(", ") ?? vocab?.meanings.join(", ") ?? "Item")}
+                          </p>
+                        </div>
                         <p className="text-[10px] text-muted-foreground font-mono">
                           {kanji?.readings.onyomi.join("、") || kanji?.readings.kunyomi.join("、") || (vocab?.reading ?? "—")}
                         </p>
@@ -344,11 +351,19 @@ function SessionView({
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardContent className="p-8">
             <div className="flex flex-col items-center text-center">
-              <div className="w-24 h-24 rounded-2xl bg-secondary flex items-center justify-center mb-6">
-                <span className="font-japanese text-6xl text-foreground">
-                  {kanji?.character ?? vocab?.word ?? "復"}
-                </span>
-              </div>
+              {kanji ? (
+                <div className="w-24 h-24 rounded-2xl bg-secondary flex items-center justify-center mb-6">
+                  <span className="font-japanese text-6xl text-foreground">
+                    {kanji.character}
+                  </span>
+                </div>
+              ) : (
+                <div className="min-w-[220px] max-w-full px-8 py-4 rounded-2xl bg-secondary flex items-center justify-center mb-6">
+                  <span className="font-japanese text-5xl text-foreground whitespace-nowrap">
+                    {vocab?.word ?? "復"}
+                  </span>
+                </div>
+              )}
 
               {!showAnswer ? (
                 <div className="space-y-4">
