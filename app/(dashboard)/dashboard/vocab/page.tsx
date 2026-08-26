@@ -5,8 +5,11 @@ import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   BookOpen,
+  ChevronLeft,
   ChevronRight,
   Clock,
+  Filter,
+  Layers,
   RefreshCcw,
   Search,
   Sparkles,
@@ -29,14 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import {
@@ -115,21 +110,239 @@ function SummaryCard({
   )
 }
 
-function LoadingRows() {
+function LoadingGrid() {
   return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, index) => (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
         <Card key={index} className="bg-card/60 border-border/50">
-          <CardContent className="p-4 animate-pulse space-y-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="h-5 w-32 rounded bg-muted/50" />
-              <div className="h-5 w-12 rounded bg-muted/50" />
+          <CardContent className="p-5 space-y-4 animate-pulse">
+            <div className="flex items-center justify-between">
+              <div className="h-5 w-16 rounded bg-muted/50" />
+              <div className="h-5 w-10 rounded-full bg-muted/50" />
             </div>
-            <div className="h-4 w-24 rounded bg-muted/50" />
+            <div className="h-20 w-20 rounded-2xl bg-muted/50" />
+            <div className="h-4 w-3/4 rounded bg-muted/50" />
             <div className="h-4 w-1/2 rounded bg-muted/50" />
+            <div className="h-2 w-full rounded bg-muted/50" />
           </CardContent>
         </Card>
       ))}
+    </div>
+  )
+}
+
+function VocabularyResultCard({
+  item,
+  isExpanded,
+  detail,
+  isLoadingDetail,
+  isProgressLoading,
+  onToggle,
+  onProgressUpdate,
+}: {
+  item: VocabularyListItemDto
+  isExpanded: boolean
+  detail?: VocabularyDetailResponseDto
+  isLoadingDetail: boolean
+  isProgressLoading: boolean
+  onToggle: () => void
+  onProgressUpdate: (action: "study" | "review") => void
+}) {
+  const progress = detail?.userProgress ?? item.userProgress
+
+  return (
+    <div className="group">
+      <Card className="h-full overflow-hidden bg-card/60 backdrop-blur border-border/50 transition-all duration-200 group-hover:border-[var(--torii-red)]/40 group-hover:-translate-y-1">
+        <CardContent className="p-5 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <Badge variant="outline" className="text-[10px] uppercase tracking-[0.18em]">
+              {item.jlpt}
+            </Badge>
+            <span className="text-xs text-muted-foreground">#{item.frequency ?? "—"}</span>
+          </div>
+
+          <div className="flex items-center gap-4 cursor-pointer" onClick={onToggle}>
+            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-[var(--torii-red)]/10 to-transparent border border-[var(--torii-red)]/15 flex items-center justify-center shrink-0">
+              <span className="font-japanese text-5xl text-[var(--torii-red)]">{item.word.charAt(0)}</span>
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex items-center gap-2">
+                <p className="font-japanese text-xl text-foreground truncate">{item.word}</p>
+                {item.userProgress?.isMastered ? (
+                  <Star className="h-4 w-4 text-emerald-500 fill-emerald-500 shrink-0" />
+                ) : null}
+              </div>
+              <p className="text-xs text-muted-foreground font-mono truncate">{item.reading}</p>
+              <p className="text-sm text-foreground line-clamp-2">{item.primaryMeaning || "—"}</p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+            {item.partOfSpeech ? (
+              <span className="rounded-md border border-border/50 bg-background/40 px-2 py-1">
+                {item.partOfSpeech}
+              </span>
+            ) : (
+              <span>Tipo não informado</span>
+            )}
+          </div>
+
+          {progress ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>SRS</span>
+                <span>
+                  {progress.srsLevel}
+                  {progress.isMastered ? " · dominado" : ""}
+                </span>
+              </div>
+              <Progress value={progress.srsLevel * 10} className="h-2" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Layers className="h-3.5 w-3.5" />
+              Progresso indisponível sem autenticação
+            </div>
+          )}
+
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white"
+              disabled={isProgressLoading}
+              onClick={(event) => {
+                event.stopPropagation()
+                onProgressUpdate("study")
+              }}
+            >
+              <BookOpen className="h-3 w-3 mr-1" />
+              Estudar
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isProgressLoading}
+              onClick={(event) => {
+                event.stopPropagation()
+                onProgressUpdate("review")
+              }}
+            >
+              <Zap className="h-3 w-3 mr-1" />
+              Review
+            </Button>
+          </div>
+
+          {isExpanded ? (
+            <div className="space-y-4 border-t border-border/50 pt-4">
+              {isLoadingDetail && !detail ? (
+                <div className="text-sm text-muted-foreground">Carregando detalhe...</div>
+              ) : detail ? (
+                <>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {detail.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        <Tag className="h-3 w-3 mr-1" />
+                        {tag}
+                      </Badge>
+                    ))}
+                    {detail.audioUrl ? (
+                      <Badge variant="outline" className="text-xs">
+                        <Volume2 className="h-3 w-3 mr-1" />
+                        Áudio disponível
+                      </Badge>
+                    ) : null}
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Significados
+                    </p>
+                    <div className="space-y-2">
+                      {detail.meanings.map((meaning, index) => (
+                        <div
+                          key={`${meaning.meaning}-${index}`}
+                          className="rounded-lg border border-border/50 bg-background/40 px-3 py-2"
+                        >
+                          <p className="text-sm text-foreground">{meaning.meaning}</p>
+                          {meaning.context ? (
+                            <p className="text-xs text-muted-foreground mt-1">{meaning.context}</p>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                      Exemplos
+                    </p>
+                    <div className="space-y-2">
+                      {detail.examples.length > 0 ? (
+                        detail.examples.map((example, index) => (
+                          <div
+                            key={`${example.japanese}-${index}`}
+                            className="p-3 rounded-lg bg-background/50 border border-border/50"
+                          >
+                            <p className="font-japanese text-foreground mb-1">{example.japanese}</p>
+                            {example.reading ? (
+                              <p className="text-xs font-mono text-muted-foreground mb-1">
+                                {example.reading}
+                              </p>
+                            ) : null}
+                            <p className="text-sm text-muted-foreground">{example.translation}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Sem exemplos cadastrados.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border/50 bg-background/50 px-3 py-3 space-y-2 text-sm">
+                    <p className="flex items-center gap-2 text-xs font-medium text-foreground uppercase tracking-wider mb-1">
+                      <Clock className="h-3.5 w-3.5 text-[var(--torii-red)]" />
+                      Progresso
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Nível SRS</span>
+                      <span className="font-medium text-foreground">{progress?.srsLevel ?? 0}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Reviews corretos</span>
+                      <span className="font-medium text-foreground">
+                        {detail.userProgress?.correctReviews ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Total reviews</span>
+                      <span className="font-medium text-foreground">
+                        {detail.userProgress?.totalReviews ?? 0}
+                      </span>
+                    </div>
+                    {detail.notes ? (
+                      <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2 text-xs text-muted-foreground">
+                        {detail.notes}
+                      </div>
+                    ) : null}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-muted-foreground">Detalhe indisponível.</div>
+              )}
+            </div>
+          ) : null}
+
+          <div
+            className="flex items-center justify-between pt-1 text-sm text-muted-foreground cursor-pointer select-none"
+            onClick={onToggle}
+          >
+            <span>{isExpanded ? "Ocultar detalhes" : "Ver detalhes"}</span>
+            <ChevronRight
+              className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-90")}
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
@@ -220,6 +433,8 @@ export default function VocabPage() {
   const studiedCount = visibleItems.filter((item) => item.userProgress).length
   const masteredCount = visibleItems.filter((item) => item.userProgress?.isMastered).length
   const reviewCount = visibleItems.filter((item) => (item.userProgress?.srsLevel ?? 0) > 1).length
+  const startItem = pagination.total === 0 ? 0 : (pagination.page - 1) * pagination.perPage + 1
+  const endItem = Math.min(pagination.page * pagination.perPage, pagination.total)
 
   const handleExpand = React.useCallback(
     async (item: VocabularyListItemDto) => {
@@ -394,6 +609,12 @@ export default function VocabPage() {
                 <span>Com review</span>
                 <span className="text-foreground font-medium">{reviewCount}</span>
               </div>
+              <div className="flex items-center justify-between">
+                <span>Faixa</span>
+                <span className="text-foreground font-medium">
+                  {pagination.total === 0 ? "—" : `${startItem}-${endItem}`}
+                </span>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -492,237 +713,72 @@ export default function VocabPage() {
 
         {errorMessage ? (
           <Alert variant="destructive">
-            <AlertTitle>Falha ao carregar vocabulary</AlertTitle>
+            <AlertTitle>Falha ao carregar vocabulário</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
           </Alert>
         ) : null}
 
-        {isLoading ? (
-          <LoadingRows />
+        {isLoading && response.data.length === 0 ? (
+          <LoadingGrid />
+        ) : visibleItems.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {visibleItems.map((item) => (
+              <VocabularyResultCard
+                key={item.id}
+                item={item}
+                isExpanded={expandedRow === item.id}
+                detail={details[item.id]}
+                isLoadingDetail={loadingDetailId === item.id && !details[item.id]}
+                isProgressLoading={progressLoadingId === item.id}
+                onToggle={() => void handleExpand(item)}
+                onProgressUpdate={(action) => void handleProgressUpdate(item.id, action)}
+              />
+            ))}
+          </div>
         ) : (
-          <Card className="bg-card/60 backdrop-blur border-border/50 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border hover:bg-transparent">
-                  <TableHead className="w-[180px]">Palavra</TableHead>
-                  <TableHead className="w-[140px]">Leitura</TableHead>
-                  <TableHead>Significado</TableHead>
-                  <TableHead className="w-[90px]">JLPT</TableHead>
-                  <TableHead className="w-[130px]">Classe</TableHead>
-                  <TableHead className="w-[120px]">Progresso</TableHead>
-                  <TableHead className="w-[80px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {visibleItems.map((item) => {
-                  const detail = details[item.id]
-                  const progress = detail?.userProgress ?? item.userProgress
-                  const isExpanded = expandedRow === item.id
-
-                  return (
-                    <React.Fragment key={item.id}>
-                      <TableRow
-                        className={cn(
-                          "border-border cursor-pointer transition-colors",
-                          isExpanded && "bg-secondary/30",
-                        )}
-                        onClick={() => void handleExpand(item)}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                              <span className="font-japanese text-lg text-foreground">{item.word.charAt(0)}</span>
-                            </div>
-                            <div>
-                              <p className="font-japanese text-lg text-foreground">{item.word}</p>
-                              <p className="text-xs text-muted-foreground">#{item.frequency ?? "—"}</p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-sm text-muted-foreground">{item.reading}</span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-foreground">{item.primaryMeaning || "—"}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {item.jlpt}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-xs text-muted-foreground">{item.partOfSpeech || "—"}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Progress value={(progress?.srsLevel ?? 0) * 10} className="h-1.5 w-16" />
-                            {progress?.isMastered ? (
-                              <Star className="h-3 w-3 text-emerald-500 fill-emerald-500" />
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <ChevronRight
-                            className={cn(
-                              "h-4 w-4 text-muted-foreground transition-transform",
-                              isExpanded && "rotate-90",
-                            )}
-                          />
-                        </TableCell>
-                      </TableRow>
-
-                      {isExpanded ? (
-                        <TableRow className="border-border bg-secondary/20 hover:bg-secondary/20">
-                          <TableCell colSpan={7} className="p-4">
-                            {loadingDetailId === item.id && !detail ? (
-                              <div className="text-sm text-muted-foreground">Carregando detalhe...</div>
-                            ) : detail ? (
-                              <div className="space-y-4">
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {detail.tags.map((tag) => (
-                                    <Badge key={tag} variant="secondary" className="text-xs">
-                                      <Tag className="h-3 w-3 mr-1" />
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                  {detail.audioUrl ? (
-                                    <Badge variant="outline" className="text-xs">
-                                      <Volume2 className="h-3 w-3 mr-1" />
-                                      Áudio disponível
-                                    </Badge>
-                                  ) : null}
-                                </div>
-
-                                <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-                                  <div className="space-y-3">
-                                    <div>
-                                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                        Significados
-                                      </p>
-                                      <div className="space-y-2">
-                                        {detail.meanings.map((meaning, index) => (
-                                          <div
-                                            key={`${meaning.meaning}-${index}`}
-                                            className="rounded-lg border border-border/50 bg-background/40 px-3 py-2"
-                                          >
-                                            <p className="text-sm text-foreground">{meaning.meaning}</p>
-                                            {meaning.context ? (
-                                              <p className="text-xs text-muted-foreground mt-1">{meaning.context}</p>
-                                            ) : null}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                                        Exemplos
-                                      </p>
-                                      <div className="space-y-2">
-                                        {detail.examples.length > 0 ? (
-                                          detail.examples.map((example, index) => (
-                                            <div
-                                              key={`${example.japanese}-${index}`}
-                                              className="p-3 rounded-lg bg-background/50 border border-border/50"
-                                            >
-                                              <p className="font-japanese text-foreground mb-1">{example.japanese}</p>
-                                              {example.reading ? (
-                                                <p className="text-xs font-mono text-muted-foreground mb-1">
-                                                  {example.reading}
-                                                </p>
-                                              ) : null}
-                                              <p className="text-sm text-muted-foreground">{example.translation}</p>
-                                            </div>
-                                          ))
-                                        ) : (
-                                          <p className="text-sm text-muted-foreground">Sem exemplos cadastrados.</p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="space-y-3">
-                                    <Card className="bg-background/50 border-border/50">
-                                      <CardHeader className="pb-2">
-                                        <CardTitle className="text-sm flex items-center gap-2">
-                                          <Clock className="h-4 w-4 text-[var(--torii-red)]" />
-                                          Progresso
-                                        </CardTitle>
-                                      </CardHeader>
-                                      <CardContent className="space-y-3 text-sm">
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-muted-foreground">Nível SRS</span>
-                                          <span className="font-medium text-foreground">{progress?.srsLevel ?? 0}</span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-muted-foreground">Reviews corretos</span>
-                                          <span className="font-medium text-foreground">
-                                            {detail.userProgress?.correctReviews ?? 0}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-center justify-between">
-                                          <span className="text-muted-foreground">Total reviews</span>
-                                          <span className="font-medium text-foreground">
-                                            {detail.userProgress?.totalReviews ?? 0}
-                                          </span>
-                                        </div>
-                                        {detail.notes ? (
-                                          <div className="rounded-lg border border-border/50 bg-card/40 px-3 py-2 text-xs text-muted-foreground">
-                                            {detail.notes}
-                                          </div>
-                                        ) : null}
-                                      </CardContent>
-                                    </Card>
-
-                                    <div className="flex flex-wrap gap-2">
-                                      <Button
-                                        size="sm"
-                                        className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white"
-                                        disabled={progressLoadingId === item.id}
-                                        onClick={(event) => {
-                                          event.stopPropagation()
-                                          void handleProgressUpdate(item.id, "study")
-                                        }}
-                                      >
-                                        <BookOpen className="h-3 w-3 mr-1" />
-                                        Estudar
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        disabled={progressLoadingId === item.id}
-                                        onClick={(event) => {
-                                          event.stopPropagation()
-                                          void handleProgressUpdate(item.id, "review")
-                                        }}
-                                      >
-                                        <Zap className="h-3 w-3 mr-1" />
-                                        Review correto
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="text-sm text-muted-foreground">Detalhe indisponível.</div>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ) : null}
-                    </React.Fragment>
-                  )
-                })}
-              </TableBody>
-            </Table>
+          <Card className="bg-card/60 border-border/50">
+            <CardContent className="py-14 text-center space-y-3">
+              <div className="mx-auto h-14 w-14 rounded-2xl bg-secondary flex items-center justify-center text-[var(--torii-red)]">
+                <Filter className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-lg font-medium text-foreground">Nenhum vocabulário encontrado</p>
+                <p className="text-sm text-muted-foreground">
+                  Ajuste a busca ou os filtros para consultar outro conjunto da API.
+                </p>
+              </div>
+            </CardContent>
           </Card>
         )}
 
-        {!isLoading && visibleItems.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-            <span className="font-japanese text-6xl text-muted-foreground/30 block mb-4">空</span>
-            <p className="text-muted-foreground">Nenhum vocabulário encontrado para os filtros atuais.</p>
-          </motion.div>
-        ) : null}
+        <Card className="bg-card/60 backdrop-blur border-border/50">
+          <CardContent className="p-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="text-sm text-muted-foreground">
+              Mostrando {pagination.total === 0 ? 0 : startItem}–{endItem} de {pagination.total.toLocaleString("pt-BR")} resultados
+            </div>
+            <div className="flex items-center gap-2 self-end lg:self-auto">
+              <Button
+                variant="outline"
+                disabled={pagination.page <= 1 || isLoading}
+                onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Anterior
+              </Button>
+              <Badge variant="outline" className="px-3 py-2">
+                Página {pagination.page} de {Math.max(pagination.pages, 1)}
+              </Badge>
+              <Button
+                variant="outline"
+                disabled={pagination.page >= pagination.pages || isLoading || pagination.pages === 0}
+                onClick={() => setPage((currentPage) => currentPage + 1)}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
     </DashboardShell>
   )
