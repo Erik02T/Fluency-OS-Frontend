@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -59,6 +60,12 @@ import {
   type ImmersionLogResponseDto,
   type PaginatedImmersionLogResponseDto,
 } from "@/lib/immersion-api"
+import {
+  getWeeklyPlan,
+  updateWeeklyGoals,
+  type WeeklyPlanResponseDto,
+  type WeeklyGoalItemDto,
+} from "@/lib/planner-api"
 
 const PAGE_SIZE = 50
 
@@ -223,6 +230,7 @@ interface StatsSummary {
 function computeStats(
   logs: ImmersionLogResponseDto[],
   now: Date,
+  weeklyTarget?: number,
 ): StatsSummary {
   const todayStart = startOfDay(now)
   const todayEnd = endOfDay(now)
@@ -279,7 +287,8 @@ function computeStats(
       ? Math.round((comprehensionSum / comprehensionCount) / 20) / 1
       : 0
 
-  const weeklyTarget = Math.max(420, weekMinutes + 100)
+  // Use provided weeklyTarget or fallback to calculated value
+  const finalWeeklyTarget = weeklyTarget ?? Math.max(420, weekMinutes + 100)
 
   return {
     todayMinutes,
@@ -289,7 +298,7 @@ function computeStats(
     streakDays,
     averageComprehension: Math.min(5, Math.max(0, averageComprehension)),
     weeklyCurrent: weekMinutes,
-    weeklyTarget,
+    weeklyTarget: finalWeeklyTarget,
   }
 }
 
@@ -463,6 +472,7 @@ function LoadingTypeBreakdown() {
 
 export default function ImmersionPage() {
   const [isAddingSession, setIsAddingSession] = React.useState(false)
+  const [isEditingGoal, setIsEditingGoal] = React.useState(false)
   const [formType, setFormType] = React.useState<string>("")
   const [formTitle, setFormTitle] = React.useState("")
   const [formEpisode, setFormEpisode] = React.useState("")
@@ -472,9 +482,11 @@ export default function ImmersionPage() {
   const [formLoggedAt, setFormLoggedAt] = React.useState<string>(
     () => new Date().toISOString().split("T")[0],
   )
+  const [goalValue, setGoalValue] = React.useState<string>("")
 
   const [isLoading, setIsLoading] = React.useState(true)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [isUpdatingGoal, setIsUpdatingGoal] = React.useState(false)
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
   const [
     response,
@@ -483,10 +495,16 @@ export default function ImmersionPage() {
     data: [],
     pagination: { page: 1, perPage: PAGE_SIZE, total: 0, pages: 0 },
   })
+  const [weeklyPlan, setWeeklyPlan] = React.useState<WeeklyPlanResponseDto | null>(null)
 
   const now = new Date()
   const allLogs = response.data
-  const stats = computeStats(allLogs, now)
+
+  // Extract immersion goal from weekly plan
+  const immersionGoal = weeklyPlan?.goals.find(g => g.category === "IMMERSION")
+  const weeklyTarget = immersionGoal?.targetValue
+
+  const stats = computeStats(allLogs, now, weeklyTarget)
   const weekBreakdown = buildWeekBreakdown(allLogs, now)
   const typeBreakdown = computeTypeBreakdown(allLogs)
 
@@ -548,9 +566,79 @@ export default function ImmersionPage() {
     }
   }, [])
 
+  const fetchWeeklyPlan = React.useCallback(async () => {
+    try {
+      const plan = await getWeeklyPlan({ date: new Date().toISOString().split("T")[0] })
+      setWeeklyPlan(plan)
+      // Initialize goal value when plan loads
+      const immersionGoal = plan?.goals.find(g => g.category === "IMMERSION")
+      if (immersionGoal) {
+        setGoalValue(immersionGoal.targetValue.toString())
+      }
+    } catch (error) {
+      console.error("[immersion-page] Failed to fetch weekly plan:", error)
+      // Don't show error toast for this - it's not critical
+    }
+  }, [])
+
+  const handleUpdateGoal = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!weeklyPlan) {
+      toast({
+        title: "Erro ao atualizar meta",
+        description: "Não foi possível encontrar o planejamento semanal.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const goalNum = Number(goalValue)
+    if (!goalNum || goalNum < 1 || !Number.isFinite(goalNum)) {
+      toast({
+        title: "Valor inválido",
+        description: "Informe um valor positivo para a meta semanal.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      setIsUpdatingGoal(true)
+
+      // Get current goals and update only the immersion goal
+      const currentGoals: WeeklyGoalItemDto[] = weeklyPlan.goals.map(g => ({
+        category: g.category,
+        targetValue: g.category === "IMMERSION" ? goalNum : g.targetValue,
+        unit: g.unit,
+      }))
+
+      const updatedPlan = await updateWeeklyGoals(weeklyPlan.id, currentGoals)
+
+      toast({
+        title: "Meta atualizada!",
+        description: `Sua meta semanal de imersão foi alterada para ${goalNum} minutos.`,
+      })
+
+      setWeeklyPlan(updatedPlan)
+      setIsEditingGoal(false)
+    } catch (error) {
+      const message = parseApiMessage(getErrorMessage(error))
+      console.error("[immersion-page] Failed to update goal:", error)
+      toast({
+        title: "Erro ao atualizar meta",
+        description: message || "Não foi possível atualizar a meta semanal.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdatingGoal(false)
+    }
+  }
+
   React.useEffect(() => {
     void fetchLogs()
-  }, [fetchLogs])
+    void fetchWeeklyPlan()
+  }, [fetchLogs, fetchWeeklyPlan])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -622,6 +710,7 @@ export default function ImmersionPage() {
       resetForm()
       setIsAddingSession(false)
       await fetchLogs()
+      void fetchWeeklyPlan() // Refresh to get updated progress
     } catch (error) {
       const message = parseApiMessage(getErrorMessage(error))
       console.error("[immersion-page] Failed to create immersion session:", {
@@ -707,7 +796,10 @@ export default function ImmersionPage() {
               <AlertTitle>Erro ao carregar dados</AlertTitle>
               <AlertDescription className="space-y-3">
                 <p>{errorMessage}</p>
-                <Button size="sm" variant="destructive" onClick={() => void fetchLogs()}>
+                <Button size="sm" variant="destructive" onClick={() => {
+                  void fetchLogs()
+                  void fetchWeeklyPlan()
+                }}>
                   Tentar novamente
                 </Button>
               </AlertDescription>
@@ -738,9 +830,67 @@ export default function ImmersionPage() {
                         <Target className="h-4 w-4 text-[var(--torii-red)]" />
                         Meta Semanal
                       </CardTitle>
-                      <span className="text-xs text-muted-foreground">
-                        {stats.weeklyCurrent}/{stats.weeklyTarget} min
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">
+                          {stats.weeklyCurrent}/{stats.weeklyTarget} min
+                        </span>
+                        <Dialog open={isEditingGoal} onOpenChange={setIsEditingGoal}>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-7 w-7"
+                              disabled={!weeklyPlan}
+                            >
+                              <Sparkles className="h-3.5 w-3.5" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="bg-card border-border">
+                            <DialogHeader>
+                              <DialogTitle>Editar Meta Semanal de Imersão</DialogTitle>
+                            </DialogHeader>
+                            <form onSubmit={handleUpdateGoal} className="space-y-4 pt-4">
+                              <div className="space-y-2">
+                                <Label htmlFor="goal-value">Meta semanal (minutos)</Label>
+                                <Input
+                                  id="goal-value"
+                                  type="number"
+                                  min={1}
+                                  max={10000}
+                                  value={goalValue}
+                                  onChange={(e) => setGoalValue(e.target.value)}
+                                  disabled={isUpdatingGoal}
+                                  className="bg-secondary/50 border-border"
+                                />
+                              </div>
+                              <DialogFooter>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setIsEditingGoal(false)}
+                                  disabled={isUpdatingGoal}
+                                >
+                                  Cancelar
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  size="sm"
+                                  className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white"
+                                  disabled={isUpdatingGoal}
+                                >
+                                  {isUpdatingGoal ? (
+                                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                  ) : (
+                                    <Target className="h-4 w-4 mr-1" />
+                                  )}
+                                  Salvar
+                                </Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent>

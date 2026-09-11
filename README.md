@@ -1,6 +1,31 @@
 # 日本語 Fluency OS — Frontend
 
-Sistema operacional premium para fluência em japonês. O frontend é uma aplicação **Next.js 16** com **React 19**, **TypeScript**, **Tailwind CSS v4** e **shadcn/ui**, projetada para oferecer uma experiência unificada de aprendizado de japonês com Kanji, vocabulário, gramática, imersão, revisão SRS e analytics.
+Sistema operacional para fluência em japonês. O frontend é uma aplicação **Next.js 16** com **React 19**, **TypeScript**, **Tailwind CSS v4** e **shadcn/ui**, com telas para Kanji, vocabulário, gramática, imersão, revisão SRS, planner e analytics.
+
+> **Status verificado em 2026-09-11:** as páginas refletem o estado da interface, mas a existência de uma tela não comprova integração completa com backend.
+
+## Estado atual
+
+### Implementado e integrado
+
+- Autenticação por login, registro, refresh por cookie e logout.
+- Clientes de API para dashboard mínimo, kanji, vocabulário, gramática, imersão, review, planner e analytics.
+- Páginas de Kanji, vocabulário, gramática, imersão, revisão, planner, estudo e dashboard.
+- CRUD administrativo de kanji, vocabulário e gramática com proteção de rota para ADMIN.
+- Testes de clients, autenticação, storage em memória, retry de token e navegação administrativa.
+
+### Parcial
+
+- Dashboard contém dados reais do resumo, mas também possui blocos visuais estáticos e heatmap gerado localmente.
+- Analytics possui client e página, sem E2E específico.
+- Lista de estudo consulta páginas fixas de conteúdo em vez de um endpoint dedicado.
+- Autenticação usa token de acesso em memória; o backend ainda não implementa o modelo documentado de refresh hash/rotação.
+
+### Não implementado no frontend
+
+- AI Tutor real: a página exibe resposta local fixa e não chama `/ai/*`.
+- Notifications, Custom Lists, Sentence Mining e WebSocket de produto.
+- Páginas para Users e dashboard expandido documentado sem endpoints correspondentes.
 
 ---
 

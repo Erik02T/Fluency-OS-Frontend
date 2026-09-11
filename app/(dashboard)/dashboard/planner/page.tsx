@@ -13,32 +13,35 @@ import {
   ChevronRight,
   Repeat,
   Star,
-  Zap,
-  BookOpen,
-  Headphones,
-  Brain,
   RefreshCw,
   AlertCircle,
   Loader2,
+  Trash2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DashboardShell } from "@/components/layout"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import {
+  deletePlannerTask,
   getPlannerOverview,
+  getWeeklyPlan,
+  togglePlannerTaskCompletion,
   type PlannerHabitDto,
   type PlannerOverviewResponseDto,
   type PlannerTaskDto,
   type PlannerTaskDomain,
   type PlannerWeeklyGoalDto,
+  type WeeklyGoalItemDto,
+  type WeeklyPlanResponseDto,
 } from "@/lib/planner-api"
+import { AddTaskModal } from "@/components/planner/add-task-modal"
+import { EditGoalsModal } from "@/components/planner/edit-goals-modal"
 
 const WEEK_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
@@ -48,17 +51,6 @@ const HABIT_COLOR_BY_DOMAIN: Record<PlannerTaskDomain, string> = {
   grammar: "text-[var(--neon-blue)]",
   immersion: "text-[var(--teal)]",
   general: "text-[var(--torii-red)]",
-}
-
-const HABIT_ICON_BY_DOMAIN: Record<
-  PlannerTaskDomain,
-  React.ComponentType<{ className?: string }>
-> = {
-  kanji: BookOpen,
-  vocabulary: BookOpen,
-  grammar: Brain,
-  immersion: Headphones,
-  general: Zap,
 }
 
 const WEEK_COLOR_CLASS = [
@@ -265,22 +257,28 @@ function LoadingSummaryCards() {
 export default function PlannerPage() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+  const [isAddTaskOpen, setIsAddTaskOpen] = React.useState(false)
+  const [isEditGoalsOpen, setIsEditGoalsOpen] = React.useState(false)
   const [
     overview,
     setOverview,
   ] = React.useState<PlannerOverviewResponseDto | null>(null)
+  const [weeklyPlan, setWeeklyPlan] = React.useState<WeeklyPlanResponseDto | null>(null)
   const [completedTaskIds, setCompletedTaskIds] = React.useState<
     Record<string, boolean>
   >({})
   const [selectedDay, setSelectedDay] = React.useState<number>(3)
+  const [weekOffset, setWeekOffset] = React.useState<number>(0)
 
-  const todayTasks: PlannerTaskDto[] = overview?.todayTasks ?? []
+  const todayTasks: PlannerTaskDto[] = React.useMemo(() => overview?.todayTasks ?? [], [overview?.todayTasks])
   const habits: PlannerHabitDto[] = overview?.habits ?? []
   const weeklyGoals: PlannerWeeklyGoalDto[] = overview?.weeklyGoals ?? []
   const weekDays = overview?.week ?? []
 
   const monthLabel = React.useMemo(() => {
     const now = new Date()
+    const targetDate = new Date(now)
+    targetDate.setDate(now.getDate() + (weekOffset * 7))
     const monthNames = [
       "Janeiro",
       "Fevereiro",
@@ -295,87 +293,167 @@ export default function PlannerPage() {
       "Novembro",
       "Dezembro",
     ]
-    return `${monthNames[now.getMonth()]} ${now.getFullYear()}`
-  }, [])
+    return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`
+  }, [weekOffset])
 
   const weekNumber = React.useMemo(() => {
     const now = new Date()
-    const start = new Date(now.getFullYear(), 0, 1)
-    const diff = now.getTime() - start.getTime()
+    const targetDate = new Date(now)
+    targetDate.setDate(now.getDate() + (weekOffset * 7))
+    const start = new Date(targetDate.getFullYear(), 0, 1)
+    const diff = targetDate.getTime() - start.getTime()
     const oneWeek = 7 * 24 * 60 * 60 * 1000
     return Math.max(1, Math.ceil(diff / oneWeek))
-  }, [])
+  }, [weekOffset])
+
+  const targetDate = React.useMemo(() => {
+    const now = new Date()
+    const target = new Date(now)
+    target.setDate(now.getDate() + (weekOffset * 7))
+    return target.toISOString().split("T")[0]
+  }, [weekOffset])
 
   const tasksCompletedToday = React.useMemo(() => {
     if (!overview) return 0
-    return todayTasks.filter((t) => completedTaskIds[t.id]).length
+    return todayTasks.filter((t) => completedTaskIds[t.id] || t.completed).length
   }, [todayTasks, overview, completedTaskIds])
 
   const tasksTotalToday = todayTasks.length
 
-  const fetchOverview = React.useCallback(async () => {
-    const controller = new AbortController()
-    let isActive = true
-
+  const fetchOverview = React.useCallback(async (targetDate?: string, skipLoading = false) => {
     try {
-      setIsLoading(true)
+      if (!skipLoading) {
+        setIsLoading(true)
+      }
       setErrorMessage(null)
 
-      const payload = await getPlannerOverview({ signal: controller.signal })
-      if (isActive) {
-        setOverview(payload)
-        const todayIndex = payload.week.findIndex((d) => d.isToday)
-        if (todayIndex >= 0) {
-          setSelectedDay(todayIndex)
+      const payload = await getPlannerOverview(targetDate)
+      setOverview(payload)
+
+      // Initialize completedTaskIds from server response
+      const initialCompleted: Record<string, boolean> = {}
+      for (const t of payload.todayTasks) {
+        if (t.completed || t.status === "COMPLETED") {
+          initialCompleted[t.id] = true
         }
       }
-    } catch (error) {
-      if (
-        isActive &&
-        !(error instanceof DOMException && error.name === "AbortError")
-      ) {
-        const message = parseApiMessage(getErrorMessage(error))
-        console.error("[planner-page] Failed to load planner:", {
-          error,
-          message,
-        })
-        setErrorMessage(message)
-        toast({
-          title: "Erro ao carregar planner",
-          description:
-            "Não foi possível gerar o planejamento de hoje. Tente novamente.",
-          variant: "destructive",
-        })
+      setCompletedTaskIds(initialCompleted)
+
+      const todayIndex = payload.week.findIndex((d) => d.isToday)
+      if (todayIndex >= 0) {
+        setSelectedDay(todayIndex)
       }
+    } catch (error) {
+      const message = parseApiMessage(getErrorMessage(error))
+      console.error("[planner-page] Failed to load planner:", {
+        error,
+        message,
+      })
+      setErrorMessage(message)
+      toast({
+        title: "Erro ao carregar planner",
+        description:
+          "Não foi possível gerar o planejamento. Tente novamente.",
+        variant: "destructive",
+      })
     } finally {
-      if (isActive) {
+      if (!skipLoading) {
         setIsLoading(false)
       }
     }
+  }, [])
 
-    return () => {
-      isActive = false
-      controller.abort()
+  const fetchWeeklyPlan = React.useCallback(async (targetDate?: string) => {
+    try {
+      const plan = await getWeeklyPlan({ date: targetDate })
+      setWeeklyPlan(plan)
+    } catch (error) {
+      console.error("[planner-page] Failed to load weekly plan:", error)
     }
   }, [])
 
   React.useEffect(() => {
-    void fetchOverview()
-  }, [fetchOverview])
+    void fetchOverview(targetDate)
+    void fetchWeeklyPlan(targetDate)
+  }, [fetchOverview, fetchWeeklyPlan, targetDate])
 
-  const toggleTask = (taskId: string) => {
-    setCompletedTaskIds((prev) => {
-      const next = { ...prev, [taskId]: !prev[taskId] }
-      const nowCompleted = todayTasks.filter((t) => next[t.id]).length
-      if (nowCompleted === tasksTotalToday && tasksTotalToday > 0) {
+  const toggleTask = async (taskId: string) => {
+    const isCurrentlyDone = !!completedTaskIds[taskId]
+    const nextDone = !isCurrentlyDone
+
+    // Optimistic UI update
+    setCompletedTaskIds((prev) => ({ ...prev, [taskId]: nextDone }))
+
+    // If it's a persistent task (CUID format), call API
+    if (!taskId.startsWith("task-")) {
+      try {
+        await togglePlannerTaskCompletion(taskId, { completed: nextDone })
+        // Sincronizar em background apenas se for hoje (para manter Resumo de Hoje atualizado)
+        const today = new Date().toISOString().split("T")[0]
+        if (targetDate === today) {
+          void fetchOverview(targetDate, true) // skip loading to avoid flash
+        }
+        void fetchWeeklyPlan(targetDate)
+      } catch (error) {
+        console.error("[planner-page] Failed to toggle task:", error)
+        // Rollback
+        setCompletedTaskIds((prev) => ({ ...prev, [taskId]: isCurrentlyDone }))
         toast({
-          title: "Parabéns! Todas as tarefas concluídas",
+          title: "Erro ao atualizar tarefa",
+          description: "Não foi possível sincronizar o status da tarefa.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
+
+    if (nextDone) {
+      const remaining = todayTasks.filter(
+        (t) => t.id !== taskId && !completedTaskIds[t.id],
+      ).length
+      if (remaining === 0 && tasksTotalToday > 0) {
+        toast({
+          title: "Parabéns! Todas as tarefas concluídas 🎉",
           description: "Excelente progresso de hoje. Continue assim!",
         })
       }
-      return next
-    })
+    }
   }
+
+  const handleDeleteTask = async (taskId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (taskId.startsWith("task-")) return
+
+    try {
+      await deletePlannerTask(taskId)
+      toast({
+        title: "Tarefa removida",
+        description: "A tarefa foi excluída com sucesso.",
+      })
+      void fetchOverview(targetDate, true) // skip loading to avoid flash
+      void fetchWeeklyPlan(targetDate)
+    } catch (error) {
+      console.error("[planner-page] Failed to delete task:", error)
+      toast({
+        title: "Erro ao excluir",
+        description: "Não foi possível excluir a tarefa.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleGoalsUpdated = (plan: WeeklyPlanResponseDto) => {
+    setWeeklyPlan(plan)
+    // Sempre atualizar o overview com a data atual para manter o Resumo de Hoje correto
+    const today = new Date().toISOString().split("T")[0]
+    void fetchOverview(today, true) // skip loading to avoid flash
+  }
+
+  const currentGoals: WeeklyGoalItemDto[] = weeklyPlan?.goals.map((g) => ({
+    category: g.category,
+    targetValue: g.targetValue,
+    unit: g.unit,
+  })) || []
 
   return (
     <DashboardShell
@@ -399,7 +477,7 @@ export default function PlannerPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => void fetchOverview()}
+                  onClick={() => void fetchOverview(undefined, true)}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Tentar novamente
@@ -416,7 +494,12 @@ export default function PlannerPage() {
             <Card className="bg-card/50 backdrop-blur-sm border-border/50">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setWeekOffset((prev) => prev - 1)}
+                    disabled={isLoading}
+                  >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <div className="text-center">
@@ -427,17 +510,24 @@ export default function PlannerPage() {
                       Semana {weekNumber}
                     </p>
                   </div>
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setWeekOffset((prev) => prev + 1)}
+                    disabled={isLoading}
+                  >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-2" role="navigation" aria-label="Navegação semanal">
                   {weekDays.map((day, index) => (
                     <motion.button
                       key={index}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSelectedDay(index)}
+                      aria-label={`${day.day} ${day.date}${day.isToday ? ' (hoje)' : ''}${selectedDay === index ? ' (selecionado)' : ''}`}
+                      aria-pressed={selectedDay === index}
                       className={cn(
                         "flex flex-col items-center p-3 rounded-xl transition-all",
                         selectedDay === index
@@ -452,7 +542,7 @@ export default function PlannerPage() {
                       </span>
                       <span className="text-lg font-bold">{day.date}</span>
                       {day.isToday && selectedDay !== index && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--torii-red)] mt-1" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-[var(--torii-red)] mt-1" aria-hidden="true" />
                       )}
                     </motion.button>
                   ))}
@@ -463,7 +553,7 @@ export default function PlannerPage() {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6" role="main">
             <motion.div variants={itemVariants}>
               {isLoading ? (
                 <LoadingTodayTasks />
@@ -481,8 +571,16 @@ export default function PlannerPage() {
                         </Badge>
                         <Button
                           size="sm"
+                          onClick={() => setIsAddTaskOpen(true)}
+                          className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white font-medium"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Adicionar Tarefa
+                        </Button>
+                        <Button
+                          size="sm"
                           variant="outline"
-                          onClick={() => void fetchOverview()}
+                          onClick={() => void fetchOverview(undefined, true)}
                           disabled={isLoading}
                         >
                           {isLoading ? (
@@ -502,24 +600,27 @@ export default function PlannerPage() {
                           <Star className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <h3 className="text-sm font-medium text-foreground">
-                          Nenhuma tarefa gerada
+                          Nenhuma tarefa agendada
                         </h3>
                         <p className="text-xs text-muted-foreground max-w-xs mx-auto">
-                          Comece a estudar para gerar recomendações personalizadas
-                          de revisão e imersão.
+                          Crie suas próprias metas para o dia ou comece a estudar
+                          para receber recomendações personalizadas.
                         </p>
                         <Button
                           size="sm"
-                          onClick={() => void fetchOverview()}
+                          onClick={() => setIsAddTaskOpen(true)}
                           className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white"
                         >
                           <Plus className="h-4 w-4 mr-1" />
-                          Recomendar tarefas
+                          Adicionar Tarefa
                         </Button>
                       </div>
                     ) : (
                       todayTasks.map((task, index) => {
-                        const completed = !!completedTaskIds[task.id]
+                        const completed =
+                          !!completedTaskIds[task.id] || !!task.completed
+                        const isPersistent = !task.id.startsWith("task-")
+
                         return (
                           <motion.div
                             key={task.id}
@@ -527,23 +628,34 @@ export default function PlannerPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.05 }}
                             className={cn(
-                              "flex items-center gap-3 p-3 rounded-lg border transition-all",
+                              "group flex items-center gap-3 p-3 rounded-lg border transition-all",
                               completed
-                                ? "bg-emerald-500/5 border-emerald-500/20"
+                                ? "bg-emerald-500/10 border-emerald-500/40 shadow-sm"
                                 : "bg-secondary/30 border-border/50 hover:bg-secondary/50",
                             )}
                           >
                             <Checkbox
                               checked={completed}
-                              onCheckedChange={() => toggleTask(task.id)}
-                              className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                              onCheckedChange={() => void toggleTask(task.id)}
+                              aria-label={`Marcar tarefa "${task.task}" como ${completed ? 'pendente' : 'concluída'}`}
+                              className={cn(
+                                "h-5 w-5 border-2 transition-all",
+                                completed
+                                  ? "bg-emerald-500 border-emerald-500"
+                                  : "border-border/60"
+                              )}
                             />
-                            <div className="w-8 h-8 rounded-lg bg-background/50 flex items-center justify-center shrink-0">
+                            <div className={cn(
+                              "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                              completed
+                                ? "bg-emerald-500/20"
+                                : "bg-background/50"
+                            )}>
                               <span
                                 className={cn(
-                                  "font-japanese text-sm",
+                                  "font-japanese text-sm font-semibold",
                                   completed
-                                    ? "text-emerald-500"
+                                    ? "text-emerald-600"
                                     : "text-muted-foreground",
                                 )}
                               >
@@ -554,16 +666,21 @@ export default function PlannerPage() {
                               <div>
                                 <span
                                   className={cn(
-                                    "text-sm",
+                                    "text-sm font-medium transition-all",
                                     completed
-                                      ? "text-muted-foreground line-through"
+                                      ? "text-emerald-700 line-through opacity-75"
                                       : "text-foreground",
                                   )}
                                 >
                                   {task.task}
                                 </span>
                                 {task.description && (
-                                  <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                                  <p className={cn(
+                                    "text-[11px] mt-0.5 line-clamp-1 transition-all",
+                                    completed
+                                      ? "text-emerald-600/70 opacity-60"
+                                      : "text-muted-foreground"
+                                  )}>
                                     {task.description}
                                   </p>
                                 )}
@@ -583,6 +700,19 @@ export default function PlannerPage() {
                                 <Clock className="h-3 w-3" />
                                 {task.estimatedMinutes} min
                               </span>
+                              {isPersistent && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 opacity-0 group-hover:opacity-100 hover:text-destructive transition-opacity"
+                                  onClick={(e) =>
+                                    void handleDeleteTask(task.id, e)
+                                  }
+                                  aria-label={`Excluir tarefa "${task.task}"`}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                             </div>
                           </motion.div>
                         )
@@ -611,9 +741,17 @@ export default function PlannerPage() {
                   </CardHeader>
                   <CardContent>
                     {habits.length === 0 ? (
-                      <p className="text-xs text-muted-foreground py-4 text-center">
-                        Nenhum hábito detectado ainda.
-                      </p>
+                      <div className="text-center py-8 space-y-2">
+                        <div className="w-12 h-12 rounded-xl bg-secondary mx-auto flex items-center justify-center">
+                          <Repeat className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Nenhum hábito detectado ainda.
+                        </p>
+                        <p className="text-[10px] text-muted-foreground max-w-xs mx-auto">
+                          Conclua tarefas regularmente para que o sistema detecte seus padrões de estudo.
+                        </p>
+                      </div>
                     ) : (
                       <div className="space-y-4">
                         <div className="grid grid-cols-[1fr,repeat(7,40px)] gap-2 items-center">
@@ -624,7 +762,7 @@ export default function PlannerPage() {
                               className={cn(
                                 "text-center text-[10px] text-muted-foreground",
                                 weekDays[i]?.isToday &&
-                                  "text-[var(--torii-red)] font-medium",
+                                   "text-[var(--torii-red)] font-medium",
                               )}
                             >
                               {label}
@@ -632,7 +770,7 @@ export default function PlannerPage() {
                           ))}
                         </div>
 
-                        {habits.map((habit, habitIndex) => {
+                        {habits.map((habit) => {
                           const color =
                             HABIT_COLOR_BY_DOMAIN[habit.domain] ||
                             "text-muted-foreground"
@@ -669,6 +807,9 @@ export default function PlannerPage() {
                                   key={`${habit.id}-${dayIndex}`}
                                   whileHover={{ scale: 1.1 }}
                                   whileTap={{ scale: 0.9 }}
+                                  role="checkbox"
+                                  aria-checked={done}
+                                  aria-label={`${habit.name} - ${WEEK_LABELS[dayIndex]}: ${done ? 'concluído' : 'pendente'}`}
                                   className={cn(
                                     "w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer transition-colors",
                                     done
@@ -677,18 +818,8 @@ export default function PlannerPage() {
                                         ? "bg-secondary/50 hover:bg-secondary"
                                         : "bg-secondary/20",
                                   )}
-                                  style={
-                                    !done
-                                      ? {
-                                          background:
-                                            dayIndex < habitIndex + 1
-                                              ? undefined
-                                              : undefined,
-                                        }
-                                      : undefined
-                                  }
                                 >
-                                  {done && <Check className="h-4 w-4" />}
+                                  {done && <Check className="h-4 w-4" aria-hidden="true" />}
                                 </motion.div>
                               ))}
                             </div>
@@ -702,23 +833,43 @@ export default function PlannerPage() {
             </motion.div>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6" role="complementary" aria-label="Painel lateral">
             <motion.div variants={itemVariants}>
               {isLoading ? (
                 <LoadingWeeklyGoals />
               ) : (
                 <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Target className="h-4 w-4 text-[var(--torii-red)]" />
-                      Metas Semanais
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium flex items-center gap-2">
+                        <Target className="h-4 w-4 text-[var(--torii-red)]" />
+                        Metas Semanais
+                      </CardTitle>
+                      {weeklyPlan && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setIsEditGoalsOpen(true)}
+                          disabled={isLoading}
+                        >
+                          Editar
+                        </Button>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {weeklyGoals.length === 0 ? (
-                      <p className="text-xs text-muted-foreground text-center py-2">
-                        Nenhuma meta calculada para esta semana.
-                      </p>
+                      <div className="text-center py-4 space-y-2">
+                        <div className="w-12 h-12 rounded-xl bg-secondary mx-auto flex items-center justify-center">
+                          <Target className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Nenhuma meta calculada para esta semana.
+                        </p>
+                        <p className="text-[10px] text-muted-foreground max-w-xs mx-auto">
+                          As metas serão calculadas automaticamente baseadas no seu histórico.
+                        </p>
+                      </div>
                     ) : (
                       weeklyGoals.map((goal, index) => {
                         const percent =
@@ -825,7 +976,8 @@ export default function PlannerPage() {
                             {overview?.summary.currentStreakDays ?? 0} dias
                           </p>
                           <p className="text-xs text-orange-500">
-                            Recorde: {overview?.summary.longestStreakDays ?? 0} dias
+                            Recorde: {overview?.summary.longestStreakDays ?? 0}{" "}
+                            dias
                           </p>
                         </div>
                       </div>
@@ -836,6 +988,27 @@ export default function PlannerPage() {
             )}
           </div>
         </div>
+
+        <AddTaskModal
+          open={isAddTaskOpen}
+          onOpenChange={setIsAddTaskOpen}
+          defaultDate={new Date().toISOString().split("T")[0]}
+          onTaskCreated={() => {
+            // Atualizar com a data atual para manter o Resumo de Hoje correto
+            const today = new Date().toISOString().split("T")[0]
+            void fetchOverview(today)
+            void fetchWeeklyPlan(today)
+          }}
+        />
+        {weeklyPlan && (
+          <EditGoalsModal
+            open={isEditGoalsOpen}
+            onOpenChange={setIsEditGoalsOpen}
+            planId={weeklyPlan.id}
+            currentGoals={currentGoals}
+            onGoalsUpdated={handleGoalsUpdated}
+          />
+        )}
       </motion.div>
     </DashboardShell>
   )
