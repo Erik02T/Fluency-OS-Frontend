@@ -12,6 +12,7 @@ import {
   RefreshCcw,
   Search,
   Shield,
+  SlidersHorizontal,
   Trash2,
 } from "lucide-react"
 import { DashboardShell } from "@/components/layout"
@@ -28,16 +29,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { cn } from "@/lib/utils"
 import {
   createGrammarPoint,
   deleteGrammarPoint,
-  getGrammarDetail,
-  getGrammarList,
+  getAdminGrammarDetail,
+  getAdminGrammarList,
   updateGrammarPoint,
   type CreateGrammarPointDto,
   type GrammarDetailResponseDto,
   type GrammarListItemDto,
+  type GrammarListQueryParams,
+  type GrammarReviewStatus,
 } from "@/lib/grammar-api"
 import type { JLPTLevel } from "@/lib/kanji-api"
 import { useRequireAdmin } from "@/hooks/use-require-admin"
@@ -49,6 +57,33 @@ import {
 const PAGE_SIZE = 12
 
 const jlptOptions: JLPTLevel[] = ["N5", "N4", "N3", "N2", "N1"]
+const statusOptions: GrammarReviewStatus[] = [
+  "PENDING",
+  "GENERATED",
+  "VALIDATED",
+  "REVIEWED",
+  "PUBLISHED",
+]
+const sortOptions: NonNullable<GrammarListQueryParams["sort"]>[] = [
+  "position",
+  "jlpt",
+  "difficulty",
+  "pattern",
+  "createdAt",
+]
+
+const statusBadgeVariant: Record<GrammarReviewStatus, string> = {
+  PENDING:
+    "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800/40 dark:text-slate-300 dark:border-slate-700",
+  GENERATED:
+    "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800",
+  VALIDATED:
+    "bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-900/20 dark:text-sky-300 dark:border-sky-800",
+  REVIEWED:
+    "bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-900/20 dark:text-violet-300 dark:border-violet-800",
+  PUBLISHED:
+    "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800",
+}
 
 type FormErrors = Record<string, string>
 
@@ -234,6 +269,12 @@ export default function GrammarAdminPage() {
 
   const [search, setSearch] = React.useState("")
   const [page, setPage] = React.useState(1)
+  const [filterJlpt, setFilterJlpt] = React.useState<JLPTLevel | "ALL">("ALL")
+  const [filterStatus, setFilterStatus] = React.useState<GrammarReviewStatus | "ALL">("ALL")
+  const [filterTag, setFilterTag] = React.useState("")
+  const [filterDifficulty, setFilterDifficulty] = React.useState<number | "ALL">("ALL")
+  const [sort, setSort] = React.useState<NonNullable<GrammarListQueryParams["sort"]>>("position")
+  const [order, setOrder] = React.useState<NonNullable<GrammarListQueryParams["order"]>>("asc")
   const [items, setItems] = React.useState<GrammarListItemDto[]>([])
   const [totalPages, setTotalPages] = React.useState(0)
   const [totalItems, setTotalItems] = React.useState(0)
@@ -248,6 +289,7 @@ export default function GrammarAdminPage() {
   const [formMessage, setFormMessage] = React.useState<string | null>(null)
   const [isSaving, setIsSaving] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const [filtersOpen, setFiltersOpen] = React.useState(false)
 
   React.useEffect(() => {
     const initialEditId = new URLSearchParams(window.location.search).get("id")
@@ -267,16 +309,19 @@ export default function GrammarAdminPage() {
         setIsLoadingList(true)
         setListError(null)
 
-        const payload = await getGrammarList(
-          {
-            page,
-            perPage: PAGE_SIZE,
-            search: search.trim() || undefined,
-            sort: "position",
-            order: "asc",
-          },
-          { signal: controller.signal },
-        )
+        const params: GrammarListQueryParams = {
+          page,
+          perPage: PAGE_SIZE,
+          search: search.trim() || undefined,
+          sort,
+          order,
+        }
+        if (filterJlpt !== "ALL") params.jlpt = filterJlpt
+        if (filterStatus !== "ALL") params.status = filterStatus
+        if (filterTag.trim()) params.tag = filterTag.trim()
+        if (filterDifficulty !== "ALL") params.difficulty = filterDifficulty
+
+        const payload = await getAdminGrammarList(params, { signal: controller.signal })
 
         if (isActive) {
           setItems(payload.data)
@@ -303,7 +348,19 @@ export default function GrammarAdminPage() {
       isActive = false
       controller.abort()
     }
-  }, [page, search, isInitializing, isAuthenticated, isAdmin])
+  }, [
+    page,
+    search,
+    filterJlpt,
+    filterStatus,
+    filterTag,
+    filterDifficulty,
+    sort,
+    order,
+    isInitializing,
+    isAuthenticated,
+    isAdmin,
+  ])
 
   React.useEffect(() => {
     if (isInitializing || !isAuthenticated || !isAdmin) {
@@ -326,7 +383,9 @@ export default function GrammarAdminPage() {
         setIsLoadingDetail(true)
         setFormError(null)
         setFieldErrors({})
-        const detail = await getGrammarDetail(currentEditId, { signal: controller.signal })
+        const detail = await getAdminGrammarDetail(currentEditId, {
+          signal: controller.signal,
+        })
         if (isActive) {
           setEditingDetail(detail)
           setForm(detailToForm(detail))
@@ -489,6 +548,158 @@ export default function GrammarAdminPage() {
                 className="bg-secondary/40 border-border"
               />
 
+              <Collapsible
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+                className="w-full"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start gap-2"
+                  >
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filtros e ordenação
+                    <Badge variant="secondary" className="ml-auto">
+                      {[
+                        filterJlpt !== "ALL",
+                        filterStatus !== "ALL",
+                        filterTag.trim() !== "",
+                        filterDifficulty !== "ALL",
+                        sort !== "position",
+                        order !== "asc",
+                      ].filter(Boolean).length}
+                    </Badge>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-3 space-y-3">
+                  <div className="grid gap-3 grid-cols-2 sm:grid-cols-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Nível JLPT</Label>
+                      <Select
+                        value={filterJlpt}
+                        onValueChange={(value) => {
+                          setFilterJlpt(value as JLPTLevel | "ALL")
+                          setPage(1)
+                        }}
+                      >
+                        <SelectTrigger className="bg-secondary/40 border-border h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">Todos</SelectItem>
+                          {jlptOptions.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Status</Label>
+                      <Select
+                        value={filterStatus}
+                        onValueChange={(value) => {
+                          setFilterStatus(value as GrammarReviewStatus | "ALL")
+                          setPage(1)
+                        }}
+                      >
+                        <SelectTrigger className="bg-secondary/40 border-border h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">Todos</SelectItem>
+                          {statusOptions.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Dificuldade</Label>
+                      <Select
+                        value={String(filterDifficulty)}
+                        onValueChange={(value) => {
+                          setFilterDifficulty(
+                            value === "ALL" ? "ALL" : Number(value),
+                          )
+                          setPage(1)
+                        }}
+                      >
+                        <SelectTrigger className="bg-secondary/40 border-border h-9">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ALL">Todas</SelectItem>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <SelectItem key={n} value={String(n)}>
+                              {n}/5
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-xs">Tag (exata)</Label>
+                      <Input
+                        value={filterTag}
+                        onChange={(event) => {
+                          setFilterTag(event.target.value)
+                          setPage(1)
+                        }}
+                        placeholder="verb, te-form, estado..."
+                        className="bg-secondary/40 border-border h-9"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Ordenar por</Label>
+                      <div className="flex gap-2">
+                        <Select
+                          value={sort}
+                          onValueChange={(value) => {
+                            setSort(
+                              value as NonNullable<
+                                GrammarListQueryParams["sort"]
+                              >,
+                            )
+                            setPage(1)
+                          }}
+                        >
+                          <SelectTrigger className="bg-secondary/40 border-border h-9 flex-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {sortOptions.map((opt) => (
+                              <SelectItem key={opt} value={opt}>
+                                {opt}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9 shrink-0"
+                          onClick={() => {
+                            setOrder((current) =>
+                              current === "asc" ? "desc" : "asc",
+                            )
+                            setPage(1)
+                          }}
+                          title={order === "asc" ? "Crescente" : "Decrescente"}
+                        >
+                          {order === "asc" ? "↑" : "↓"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
               {listError && (
                 <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-muted-foreground">
                   {listError}
@@ -498,11 +709,11 @@ export default function GrammarAdminPage() {
               {isLoadingList ? (
                 <div className="space-y-3 animate-pulse">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="h-16 rounded-2xl bg-muted/50" />
+                    <div key={index} className="h-20 rounded-2xl bg-muted/50" />
                   ))}
                 </div>
               ) : items.length > 0 ? (
-                <div className="space-y-2 max-h-[680px] overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-[620px] overflow-y-auto pr-1">
                   {items.map((item) => (
                     <button
                       key={item.id}
@@ -525,21 +736,39 @@ export default function GrammarAdminPage() {
                               {item.pattern.slice(0, 6)}
                             </span>
                           </div>
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground truncate">{item.title}</p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-foreground truncate">
+                                {item.title}
+                              </p>
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "border text-[10px] px-1.5 py-0",
+                                  statusBadgeVariant[item.reviewStatus],
+                                )}
+                              >
+                                {item.reviewStatus}
+                              </Badge>
+                            </div>
                             <p className="text-xs text-muted-foreground">
                               {item.jlpt} · {item.pattern}
                             </p>
                           </div>
                         </div>
-                        <Badge variant="outline">Dif {item.difficulty}/5</Badge>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <Badge variant="outline">Dif {item.difficulty}/5</Badge>
+                          <span className="text-[10px] text-muted-foreground">
+                            #{item.position}
+                          </span>
+                        </div>
                       </div>
                     </button>
                   ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Nenhum ponto gramatical encontrado.
+                  Nenhum ponto gramatical encontrado com os filtros atuais.
                 </p>
               )}
 

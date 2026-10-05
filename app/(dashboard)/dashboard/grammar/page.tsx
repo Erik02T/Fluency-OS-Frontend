@@ -22,6 +22,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -178,6 +185,7 @@ export default function GrammarPage() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedJLPT, setSelectedJLPT] = React.useState<"all" | JLPTLevel>("all")
   const [selectedDifficulty, setSelectedDifficulty] = React.useState<string>("all")
+  const [selectedTag, setSelectedTag] = React.useState<string | null>(null)
   const [sortBy, setSortBy] = React.useState<(typeof sortOptions)[number]["value"]>("position")
   const [order, setOrder] = React.useState<"asc" | "desc">("asc")
   const [page, setPage] = React.useState(1)
@@ -210,6 +218,11 @@ export default function GrammarPage() {
             perPage: PAGE_SIZE,
             search: deferredSearch || undefined,
             jlpt: selectedJLPT === "all" ? undefined : selectedJLPT,
+            difficulty:
+              selectedDifficulty === "all"
+                ? undefined
+                : Number.parseInt(selectedDifficulty, 10),
+            tag: selectedTag ?? undefined,
             sort: sortBy,
             order,
           },
@@ -240,25 +253,21 @@ export default function GrammarPage() {
       isActive = false
       controller.abort()
     }
-  }, [page, deferredSearch, selectedJLPT, sortBy, order])
+  }, [page, deferredSearch, selectedJLPT, selectedDifficulty, selectedTag, sortBy, order])
 
-  const visibleItems = React.useMemo(() => {
-    if (selectedDifficulty === "all") {
-      return response.data
-    }
-
-    return response.data.filter(
-      (item) => item.difficulty === Number.parseInt(selectedDifficulty, 10),
-    )
-  }, [response.data, selectedDifficulty])
-
+  const visibleItems = response.data
   const pagination = response.pagination
   const studiedCount = visibleItems.filter((item) => item.userProgress?.isStudied).length
   const masteredCount = visibleItems.filter(
     (item) => (item.userProgress?.confidenceLevel ?? 0) >= 4,
   ).length
-  const n5Count = response.data.filter((item) => item.jlpt === "N5").length
-  const n4Count = response.data.filter((item) => item.jlpt === "N4").length
+
+  const activeFiltersCount = [
+    selectedJLPT !== "all",
+    selectedDifficulty !== "all",
+    selectedTag !== null,
+    Boolean(deferredSearch),
+  ].filter(Boolean).length
 
   const handleAccordionChange = React.useCallback(
     async (nextValue: string | undefined) => {
@@ -413,7 +422,7 @@ export default function GrammarPage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-5">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-5">
                 <SummaryCard
                   label="Total"
                   value={pagination.total}
@@ -428,15 +437,52 @@ export default function GrammarPage() {
                 />
                 <SummaryCard
                   label="N5"
-                  value={n5Count}
+                  value={
+                    selectedJLPT === "all"
+                      ? response.data.filter((i) => i.jlpt === "N5").length
+                      : selectedJLPT === "N5"
+                        ? visibleItems.length
+                        : 0
+                  }
                   icon="五"
                   color="text-[var(--teal)]"
                 />
                 <SummaryCard
                   label="N4"
-                  value={n4Count}
+                  value={
+                    selectedJLPT === "all"
+                      ? response.data.filter((i) => i.jlpt === "N4").length
+                      : selectedJLPT === "N4"
+                        ? visibleItems.length
+                        : 0
+                  }
                   icon="四"
                   color="text-[var(--neon-blue)]"
+                />
+                <SummaryCard
+                  label="N3"
+                  value={
+                    selectedJLPT === "all"
+                      ? response.data.filter((i) => i.jlpt === "N3").length
+                      : selectedJLPT === "N3"
+                        ? visibleItems.length
+                        : 0
+                  }
+                  icon="三"
+                  color="text-[var(--gold)]"
+                />
+                <SummaryCard
+                  label="N2/N1"
+                  value={
+                    selectedJLPT === "all"
+                      ? response.data.filter((i) => i.jlpt === "N2" || i.jlpt === "N1")
+                          .length
+                      : selectedJLPT === "N2" || selectedJLPT === "N1"
+                        ? visibleItems.length
+                        : 0
+                  }
+                  icon="一二"
+                  color="text-[var(--torii-red)]"
                 />
               </div>
             </CardContent>
@@ -538,15 +584,40 @@ export default function GrammarPage() {
               </div>
 
               {allTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-4 mt-4 border-t border-border/50">
+                <div className="flex flex-wrap items-center gap-1.5 pt-4 mt-4 border-t border-border/50">
                   <span className="text-xs uppercase tracking-wider text-muted-foreground mr-1 self-center">
-                    Tags:
+                    Tags{activeFiltersCount > 0 ? ` · ${activeFiltersCount} filtro(s)` : ""}:
                   </span>
-                  {allTags.slice(0, 12).map((tag) => (
-                    <Badge key={tag} variant="secondary" className="text-[11px]">
-                      {tag}
+                  {selectedTag && (
+                    <Badge
+                      variant="default"
+                      className="text-[11px] normal-case cursor-pointer hover:opacity-80"
+                      onClick={() => {
+                        setSelectedTag(null)
+                        setPage(1)
+                      }}
+                      title="Remover filtro de tag"
+                    >
+                      <span className="mr-1">×</span>
+                      {selectedTag}
                     </Badge>
-                  ))}
+                  )}
+                  {allTags.slice(0, 18).map((tag) =>
+                    selectedTag === tag ? null : (
+                      <Badge
+                        key={tag}
+                        variant="secondary"
+                        className="text-[11px] cursor-pointer hover:bg-secondary/80 transition-colors"
+                        onClick={() => {
+                          setSelectedTag(tag)
+                          setPage(1)
+                        }}
+                        title={`Filtrar por tag "${tag}"`}
+                      >
+                        {tag}
+                      </Badge>
+                    ),
+                  )}
                 </div>
               )}
             </CardContent>
@@ -875,6 +946,7 @@ export default function GrammarPage() {
 
         {!isLoading && visibleItems.length === 0 && !errorMessage ? (
           <motion.div
+            variants={itemVariants}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center py-12"
@@ -885,6 +957,98 @@ export default function GrammarPage() {
             <p className="text-muted-foreground">
               Nenhuma gramática encontrada para os filtros atuais.
             </p>
+            {activeFiltersCount > 0 && (
+              <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedJLPT("all")
+                    setSelectedDifficulty("all")
+                    setSelectedTag(null)
+                    setSortBy("position")
+                    setOrder("asc")
+                    setPage(1)
+                  }}
+                >
+                  <RefreshCcw className="h-3.5 w-3.5 mr-1.5" />
+                  Limpar filtros
+                </Button>
+              </div>
+            )}
+            {pagination.total === 0 && activeFiltersCount === 0 && (
+              <p className="text-xs text-muted-foreground/70 mt-6 max-w-md mx-auto">
+                Nenhum ponto gramatical disponível ainda. Garanta que o seed foi
+                executado no backend:
+                <code className="block mt-1 bg-secondary px-2 py-1 rounded text-[10px] font-mono">
+                  cd backend ; npx tsx prisma/seed-grammar.ts
+                </code>
+              </p>
+            )}
+          </motion.div>
+        ) : null}
+
+        {pagination.pages > 1 && !isLoading && !errorMessage ? (
+          <motion.div
+            variants={itemVariants}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+              <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-muted-foreground">
+                  Exibindo{" "}
+                  <span className="font-medium text-foreground">
+                    {(pagination.page - 1) * pagination.perPage + 1}
+                    –{" "}
+                    {Math.min(
+                      pagination.page * pagination.perPage,
+                      pagination.total,
+                    )}
+                  </span>{" "}
+                  de{" "}
+                  <span className="font-medium text-foreground">
+                    {pagination.total.toLocaleString("pt-BR")}
+                  </span>{" "}
+                  registros
+                </p>
+                <Pagination className="justify-end">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setPage((p) => Math.max(1, p - 1))
+                        }}
+                        aria-disabled={page <= 1}
+                        className={cn(
+                          page <= 1 && "pointer-events-none opacity-50",
+                        )}
+                      />
+                    </PaginationItem>
+                    <PaginationItem>
+                      <span className="h-9 px-3 text-xs text-muted-foreground">
+                        Página {pagination.page} / {pagination.pages || 1}
+                      </span>
+                    </PaginationItem>
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setPage((p) => Math.min(pagination.pages, p + 1))
+                        }}
+                        aria-disabled={page >= pagination.pages}
+                        className={cn(
+                          page >= pagination.pages &&
+                            "pointer-events-none opacity-50",
+                        )}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </CardContent>
+            </Card>
           </motion.div>
         ) : null}
       </motion.div>

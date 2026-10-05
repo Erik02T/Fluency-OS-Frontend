@@ -9,6 +9,13 @@ import type { JLPTLevel } from "@/lib/kanji-api"
 
 export type { JLPTLevel } from "@/lib/kanji-api"
 
+export type GrammarReviewStatus =
+  | "PENDING"
+  | "GENERATED"
+  | "VALIDATED"
+  | "REVIEWED"
+  | "PUBLISHED"
+
 export interface GrammarUserProgressDto {
   isStudied: boolean
   isFavorited: boolean
@@ -32,6 +39,7 @@ export interface GrammarListItemDto {
   formalityLevel: string
   tags: string[]
   shortExplanation: string
+  reviewStatus: GrammarReviewStatus
   examplesPreview: GrammarExamplePreviewDto[]
   userProgress?: GrammarUserProgressDto
 }
@@ -66,6 +74,12 @@ export interface GrammarDetailResponseDto {
   shortExplanation: string
   detailedExplanation: string | null
   examples: GrammarDetailExampleDto[]
+  reviewStatus: GrammarReviewStatus
+  source?: string | null
+  sourceId?: string | null
+  contentVersion?: number
+  reviewedAt?: string | Date | null
+  updatedAt?: string | Date
   userProgress?: {
     isStudied: boolean
     studiedAt?: string | Date
@@ -90,6 +104,9 @@ export interface GrammarListQueryParams {
   page?: number
   perPage?: number
   jlpt?: JLPTLevel
+  status?: GrammarReviewStatus
+  tag?: string
+  difficulty?: number
   search?: string
   sort?: "difficulty" | "jlpt" | "pattern" | "createdAt" | "position"
   order?: "asc" | "desc"
@@ -261,6 +278,9 @@ export function buildGrammarListQuery(params: GrammarListQueryParams): string {
     page: params.page,
     perPage: params.perPage,
     jlpt: params.jlpt,
+    status: params.status,
+    tag: params.tag,
+    difficulty: params.difficulty,
     search: params.search,
     sort: params.sort,
     order: params.order,
@@ -287,6 +307,34 @@ export function getGrammarDetail(
 ): Promise<GrammarDetailResponseDto> {
   return requestJson<GrammarDetailResponseDto>(
     `/grammar/${id}`,
+    {
+      ...options,
+      method: "GET",
+    },
+    true,
+  )
+}
+
+export function getAdminGrammarList(
+  params: GrammarListQueryParams = {},
+  options: RequestInit = {},
+): Promise<PaginatedGrammarResponseDto> {
+  return requestJson<PaginatedGrammarResponseDto>(
+    `/admin/grammar-points${buildGrammarListQuery(params)}`,
+    {
+      ...options,
+      method: "GET",
+    },
+    true,
+  )
+}
+
+export function getAdminGrammarDetail(
+  id: string,
+  options: RequestInit = {},
+): Promise<GrammarDetailResponseDto> {
+  return requestJson<GrammarDetailResponseDto>(
+    `/admin/grammar-points/${id}`,
     {
       ...options,
       method: "GET",
