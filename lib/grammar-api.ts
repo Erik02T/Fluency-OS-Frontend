@@ -1,4 +1,5 @@
 import { tryRefreshAdminSession } from "@/lib/auth-api"
+import { CatalogApiError } from "@/lib/catalog-api-error"
 import {
   clearStoredAdminSession,
   emitAdminSessionExpired,
@@ -112,11 +113,9 @@ export interface GrammarListQueryParams {
   order?: "asc" | "desc"
 }
 
-export interface UpdateGrammarProgressDto {
-  action: "study" | "review"
-  understood?: boolean
-  confidenceLevel?: number
-}
+export type UpdateGrammarProgressDto =
+  | { action: "study" }
+  | { action: "review"; understood: boolean; confidenceLevel: number }
 
 export interface AdminGrammarExampleDto {
   japanese: string
@@ -190,7 +189,9 @@ async function requestJson<T>(
   })
 
   if (response.status === 401 && includeAuthToken) {
+    options.signal?.throwIfAborted()
     const refreshedToken = await tryRefreshAdminSession()
+    options.signal?.throwIfAborted()
 
     if (refreshedToken) {
       updateStoredAccessToken(refreshedToken)
@@ -209,13 +210,14 @@ async function requestJson<T>(
   }
 
   if (shouldExpireSession) {
+    options.signal?.throwIfAborted()
     clearStoredAdminSession()
     emitAdminSessionExpired()
   }
 
   if (!response.ok) {
     const details = await response.text()
-    throw new Error(details || `Request failed with status ${response.status}`)
+    throw new CatalogApiError(response.status, details)
   }
 
   return (await response.json()) as T
@@ -306,7 +308,7 @@ export function getGrammarDetail(
   options: RequestInit = {},
 ): Promise<GrammarDetailResponseDto> {
   return requestJson<GrammarDetailResponseDto>(
-    `/grammar/${id}`,
+    `/grammar/${encodeURIComponent(id)}`,
     {
       ...options,
       method: "GET",
