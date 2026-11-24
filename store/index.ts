@@ -119,6 +119,7 @@ interface UIState {
   searchQuery: string
   toggleSidebar: () => void
   toggleCommandPalette: () => void
+  setCommandPaletteOpen: (open: boolean) => void
   setActiveView: (view: string) => void
   setSearchQuery: (query: string) => void
 }
@@ -224,6 +225,7 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   toggleCommandPalette: () =>
     set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+  setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
   setActiveView: (view) => set({ activeView: view }),
   setSearchQuery: (query) => set({ searchQuery: query }),
 }))
