@@ -74,7 +74,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="ja"
+      lang="pt-BR"
       className={`${inter.variable} ${notoSerifJP.variable} ${jetbrainsMono.variable} dark bg-background`}
       suppressHydrationWarning
     >
