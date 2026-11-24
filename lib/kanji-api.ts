@@ -130,8 +130,25 @@ export interface KanjiProgressResponseDto {
   masteredAt?: string | Date
 }
 
-export interface UpdateKanjiProgressDto {
-  action: "study" | "review"
+export type UpdateKanjiProgressDto =
+  | { action: "study" }
+  | { action: "review"; correct: boolean }
+
+export class KanjiApiError extends Error {
+  constructor(readonly status: number, details: string) {
+    super(getKanjiApiMessage(details) || `Falha na requisição (HTTP ${status}).`)
+  }
+}
+
+function getKanjiApiMessage(details: string): string {
+  try {
+    const message = (JSON.parse(details) as { message?: string | string[] } | null)?.message
+    if (Array.isArray(message)) return message.join(" ")
+    if (typeof message === "string") return message
+  } catch {
+    return details
+  }
+  return details
 }
 
 export interface AdminKanjiMeaningDto {
@@ -242,7 +259,9 @@ async function requestJson<T>(
   })
 
   if (response.status === 401 && includeAuthToken) {
+    options.signal?.throwIfAborted()
     const refreshedToken = await tryRefreshAdminSession()
+    options.signal?.throwIfAborted()
 
     if (refreshedToken) {
       updateStoredAccessToken(refreshedToken)
@@ -261,13 +280,14 @@ async function requestJson<T>(
   }
 
   if (shouldExpireSession) {
+    options.signal?.throwIfAborted()
     clearStoredAdminSession()
     emitAdminSessionExpired()
   }
 
   if (!response.ok) {
     const details = await response.text()
-    throw new Error(details || `Request failed with status ${response.status}`)
+    throw new KanjiApiError(response.status, details)
   }
 
   return (await response.json()) as T
@@ -390,13 +410,6 @@ export function studyKanji(
   options: RequestInit = {},
 ): Promise<KanjiProgressResponseDto> {
   return updateKanjiProgress(id, { action: "study" }, options)
-}
-
-export function sendKanjiToReview(
-  id: string,
-  options: RequestInit = {},
-): Promise<KanjiProgressResponseDto> {
-  return updateKanjiProgress(id, { action: "review" }, options)
 }
 
 export function createKanji(
