@@ -98,6 +98,7 @@ export interface VocabularyListQueryParams {
   perPage?: number
   jlpt?: JLPTLevel
   search?: string
+  studied?: true
   sort?: "frequency" | "jlpt" | "word" | "createdAt"
   order?: "asc" | "desc"
 }
@@ -271,6 +272,7 @@ export function buildVocabularyListQuery(params: VocabularyListQueryParams): str
     perPage: params.perPage,
     jlpt: params.jlpt,
     search: params.search,
+    studied: params.studied,
     sort: params.sort,
     order: params.order,
   })

@@ -109,6 +109,7 @@ export interface KanjiListQueryParams {
   favorites?: boolean
   mastered?: boolean
   suspended?: boolean
+  studied?: true
   sort?: "frequency" | "jlpt" | "grade" | "strokes" | "srsLevel" | "mastered"
   order?: "asc" | "desc"
 }
@@ -334,6 +335,7 @@ export function buildKanjiListQuery(params: KanjiListQueryParams): string {
     favorites: params.favorites,
     mastered: params.mastered,
     suspended: params.suspended,
+    studied: params.studied,
     sort: params.sort,
     order: params.order,
   })
