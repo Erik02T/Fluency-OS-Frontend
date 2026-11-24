@@ -17,13 +17,13 @@ export default function AITutorPage() {
     setMessages((current) => [
       ...current,
       { role: "user", text: question.trim() },
-      { role: "ai", text: "Funcionalidade de IA em desenvolvimento. Em breve você poderá tirar dúvidas sobre kanji, vocabulário e gramática com o assistente." },
+      { role: "ai", text: "Resposta de exemplo: 勉強 (べんきょう) significa “estudo”." },
     ])
     setQuestion("")
   }
 
   return (
-    <DashboardShell title="AI Tutor" subtitle="Tire suas dúvidas sobre japonês" kanji="智">
+    <DashboardShell title="AI Tutor" subtitle="Demonstração do assistente de japonês" kanji="智">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <Card className="bg-gradient-to-br from-[var(--neon-blue)]/15 to-[var(--neon-blue)]/5 border-[var(--neon-blue)]/20">
           <CardContent className="p-6">
@@ -32,9 +32,9 @@ export default function AITutorPage() {
                 <Brain className="h-7 w-7 text-[var(--neon-blue)]" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-foreground">Assistente de Japonês</h2>
+                <h2 className="text-xl font-bold text-foreground">Demonstração do AI Tutor</h2>
                 <p className="text-sm text-muted-foreground">
-                  Pergunte sobre kanji, vocabulário, gramática ou cultura japonesa.
+                  Experimente a interface com uma resposta fixa. As mensagens ficam nesta página.
                 </p>
               </div>
             </div>
@@ -43,14 +43,14 @@ export default function AITutorPage() {
 
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4 space-y-4">
-            <div className="space-y-3 min-h-[300px] max-h-[400px] overflow-y-auto">
+            <div role="log" aria-label="Conversa de demonstração" className="space-y-3 min-h-[300px] max-h-[400px] overflow-y-auto">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-3">
                     <Sparkles className="h-6 w-6 text-[var(--neon-blue)]" />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Comece perguntando algo como "O que significa 勉強?"
+                    Experimente perguntar o que significa <span lang="ja">勉強</span>.
                   </p>
                 </div>
               ) : (
@@ -60,7 +60,7 @@ export default function AITutorPage() {
                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm [overflow-wrap:anywhere] ${
                         message.role === "user"
                           ? "bg-[var(--neon-blue)] text-white"
                           : "bg-secondary text-foreground"
@@ -73,24 +73,29 @@ export default function AITutorPage() {
               )}
             </div>
 
-            <div className="flex gap-2">
+            <form
+              className="flex gap-2"
+              onSubmit={(event) => {
+                event.preventDefault()
+                handleSend()
+              }}
+            >
               <Input
-                placeholder="Digite sua pergunta..."
+                placeholder="Digite uma pergunta de exemplo…"
+                aria-label="Pergunta da demonstração"
                 value={question}
                 onChange={(event) => setQuestion(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") handleSend()
-                }}
                 className="bg-secondary/40 border-border"
               />
               <Button
-                onClick={handleSend}
+                type="submit"
+                aria-label="Enviar na demonstração"
                 disabled={!question.trim()}
                 className="bg-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/90 text-white shrink-0"
               >
                 <Send className="h-4 w-4" />
               </Button>
-            </div>
+            </form>
           </CardContent>
         </Card>
       </motion.div>
