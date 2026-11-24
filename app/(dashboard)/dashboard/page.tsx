@@ -1,29 +1,20 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import {
-  Flame,
-  Zap,
-  Target,
-  TrendingUp,
-  Clock,
-  Brain,
-  BookOpen,
   Languages,
-  Headphones,
-  Calendar,
   ChevronRight,
-  Play,
   Sparkles,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { DashboardShell } from "@/components/layout"
 import { getDashboardSummary, type DashboardSummaryDto } from "@/lib/dashboard-api"
+import { getPlannerOverview, type PlannerOverviewResponseDto } from "@/lib/planner-api"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
 import { cn } from "@/lib/utils"
 
 // Animation variants
@@ -51,24 +42,7 @@ function formatLastReview(lastReviewAt: string | null): string {
   return `Última revisão: ${date.toLocaleDateString("pt-BR")}`
 }
 
-// Progress data
-const jlptProgress = [
-  { level: "N5", progress: 100, kanji: 80, vocab: 650, color: "bg-emerald-500" },
-  { level: "N4", progress: 72, kanji: 168, vocab: 1200, color: "bg-[var(--teal)]" },
-  { level: "N3", progress: 15, kanji: 45, vocab: 300, color: "bg-[var(--gold)]" },
-]
-
-// Daily tasks
-const dailyTasks = [
-  { task: "30 reviews de kanji", completed: true, kanji: "字" },
-  { task: "20 reviews de vocabulário", completed: true, kanji: "語" },
-  { task: "Estudar 5 gramáticas novas", completed: false, kanji: "文" },
-  { task: "30 minutos de imersão", completed: false, kanji: "聴" },
-  { task: "Sentence mining (10 frases)", completed: false, kanji: "句" },
-]
-
-// Recent kanji
-const recentKanji = [
+const kanjiExamples = [
   { kanji: "電", reading: "でん", meaning: "eletricidade", level: "N4" },
   { kanji: "話", reading: "はなし", meaning: "fala, conversa", level: "N4" },
   { kanji: "食", reading: "た・べる", meaning: "comer", level: "N5" },
@@ -77,28 +51,25 @@ const recentKanji = [
   { kanji: "聞", reading: "き・く", meaning: "ouvir", level: "N4" },
 ]
 
-// Study heatmap data (last 12 weeks)
-const generateHeatmapData = () => {
-  const data = []
-  for (let week = 0; week < 12; week++) {
-    for (let day = 0; day < 7; day++) {
-      data.push({
-        week,
-        day,
-        value: Math.floor(Math.random() * 5),
-      })
-    }
+export default function DashboardPage() {
+  const { user, isInitializing } = useAdminAuth()
+  if (!user || isInitializing) {
+    return <DashboardShell title="Dashboard" kanji="学">
+      <p role="status" className="text-sm text-muted-foreground">
+        {isInitializing ? "Restaurando sua sessão..." : "Entre para consultar seu Dashboard."}
+      </p>
+    </DashboardShell>
   }
-  return data
+  return <DashboardContent key={user.id} />
 }
 
-const heatmapData = generateHeatmapData()
-
-export default function DashboardPage() {
-  const router = useRouter()
+function DashboardContent() {
   const [summary, setSummary] = React.useState<DashboardSummaryDto | null>(null)
   const [isLoadingSummary, setIsLoadingSummary] = React.useState(true)
   const [summaryError, setSummaryError] = React.useState<string | null>(null)
+  const [today, setToday] = React.useState<PlannerOverviewResponseDto | null>(null)
+  const [tasksError, setTasksError] = React.useState<string | null>(null)
+  const dailyTasks = today?.todayTasks ?? []
 
   React.useEffect(() => {
     let isMounted = true
@@ -130,15 +101,46 @@ export default function DashboardPage() {
     }
   }, [])
 
+  React.useEffect(() => {
+    const controller = new AbortController()
+    let loading = false
+    async function loadTasks() {
+      if (loading || controller.signal.aborted) return
+      loading = true
+      try {
+        const data = await getPlannerOverview(undefined, { signal: controller.signal })
+        if (!controller.signal.aborted) {
+          setToday(data)
+          setTasksError(null)
+        }
+      } catch {
+        if (!controller.signal.aborted) {
+          setToday(null)
+          setTasksError("Não foi possível carregar as tarefas.")
+        }
+      } finally {
+        loading = false
+      }
+    }
+    void loadTasks()
+    window.addEventListener("focus", loadTasks)
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void loadTasks()
+    }, 60_000)
+    return () => {
+      controller.abort()
+      window.removeEventListener("focus", loadTasks)
+      window.clearInterval(timer)
+    }
+  }, [])
+
   const statsCards = React.useMemo(
     () => [
       {
-        title: "Streak Atual",
-        value: isLoadingSummary ? "--" : String(summary?.currentStreak ?? 0),
+        title: "Sequência atual",
+        value: summary ? String(summary.currentStreak) : "—",
         suffix: "dias",
-        icon: Flame,
-        change: `Recorde: ${summary?.longestStreak ?? 0} dias`,
-        changeType: "positive" as const,
+        change: summary ? `Recorde: ${summary.longestStreak} dias` : null,
         color: "from-orange-500/20 to-red-500/20",
         iconColor: "text-orange-500",
         kanji: "継",
@@ -146,23 +148,19 @@ export default function DashboardPage() {
       },
       {
         title: "Kanji Aprendidos",
-        value: isLoadingSummary ? "--" : String(summary?.kanjiStudied ?? 0),
+        value: summary ? String(summary.kanjiStudied) : "—",
         suffix: "itens",
-        icon: Languages,
-        change: `${summary?.kanjiMastered ?? 0} dominados`,
-        changeType: "positive" as const,
+        change: summary ? `${summary.kanjiMastered} dominados` : null,
         color: "from-[var(--gold)]/20 to-amber-500/20",
         iconColor: "text-[var(--gold)]",
         kanji: "字",
         href: "/dashboard/kanji",
       },
       {
-        title: "Reviews Pendentes",
-        value: isLoadingSummary ? "--" : String(summary?.dueReviews ?? 0),
+        title: "Revisões pendentes",
+        value: summary ? String(summary.dueReviews) : "—",
         suffix: "cards",
-        icon: Zap,
-        change: `${summary?.totalReviews ?? 0} revisões totais`,
-        changeType: "neutral" as const,
+        change: summary ? `${summary.totalReviews} revisões totais` : null,
         color: "from-[var(--torii-red)]/20 to-rose-500/20",
         iconColor: "text-[var(--torii-red)]",
         kanji: "復",
@@ -170,42 +168,37 @@ export default function DashboardPage() {
       },
       {
         title: "Precisão Geral",
-        value: isLoadingSummary ? "--" : String(summary?.accuracyRate ?? 0),
+        value: summary?.accuracyRate == null ? "—" : String(summary.accuracyRate),
         suffix: "%",
-        icon: Clock,
-        change: formatLastReview(summary?.lastReviewAt ?? null),
-        changeType: "positive" as const,
+        change: summary ? formatLastReview(summary.lastReviewAt) : null,
         color: "from-[var(--neon-blue)]/20 to-blue-500/20",
         iconColor: "text-[var(--neon-blue)]",
         kanji: "時",
         href: "/dashboard/review",
       },
     ],
-    [isLoadingSummary, summary],
+    [summary],
   )
 
   const quickActions = React.useMemo(
     () => [
       {
-        title: "Iniciar Review",
-        description: `${summary?.dueReviews ?? 0} cards pendentes`,
-        icon: Zap,
+        title: "Abrir fila de revisão",
+        description: summary ? `${summary.dueReviews} cards pendentes` : "Consultar fila",
         kanji: "復",
         color: "bg-[var(--torii-red)]",
         href: "/dashboard/review",
       },
       {
         title: "Estudar Kanji",
-        description: `${summary?.favoriteKanjis ?? 0} favoritos`,
-        icon: Languages,
+        description: summary ? `${summary.favoriteKanjis} favoritos` : "Abrir catálogo",
         kanji: "字",
         color: "bg-[var(--gold)]",
         href: "/dashboard/kanji",
       },
       {
         title: "AI Tutor",
-        description: "Tire suas dúvidas",
-        icon: Brain,
+        description: "Demonstração",
         kanji: "智",
         color: "bg-[var(--neon-blue)]",
         href: "/dashboard/ai",
@@ -213,13 +206,12 @@ export default function DashboardPage() {
       {
         title: "Imersão",
         description: "Registrar sessão",
-        icon: Headphones,
         kanji: "聴",
         color: "bg-[var(--teal)]",
         href: "/dashboard/immersion",
       },
     ],
-    [summary?.dueReviews, summary?.favoriteKanjis],
+    [summary],
   )
 
   return (
@@ -236,66 +228,61 @@ export default function DashboardPage() {
       >
         {summaryError && (
           <Card className="border-red-500/30 bg-red-500/5">
-            <CardContent className="py-3 text-sm text-red-400">{summaryError}</CardContent>
+            <CardContent role="alert" className="py-3 text-sm text-red-400">{summaryError}</CardContent>
           </Card>
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div aria-busy={isLoadingSummary} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {statsCards.map((stat) => (
             <motion.div
               key={stat.title}
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="cursor-pointer"
-              onClick={() => router.push(stat.href)}
             >
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-colors h-full">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center",
-                          stat.color
-                        )}
-                      >
-                        <span className={cn("font-japanese text-lg", stat.iconColor)}>
-                          {stat.kanji}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          {stat.title}
-                        </p>
-                        <div className="flex items-baseline gap-1">
-                          <span className="text-2xl font-bold text-foreground">
-                            {stat.value}
+              <Link href={stat.href} className="block h-full rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50 hover:border-border transition-colors h-full">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center",
+                            stat.color
+                          )}
+                        >
+                          <span aria-hidden="true" lang="ja" className={cn("font-japanese text-lg", stat.iconColor)}>
+                            {stat.kanji}
                           </span>
-                          <span className="text-sm text-muted-foreground">
-                            {stat.suffix}
-                          </span>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground">
+                            {stat.title}
+                          </p>
+                          <div className="flex items-baseline gap-1">
+                            <span className="text-2xl font-bold text-foreground">
+                              {stat.value}
+                            </span>
+                            {stat.value !== "—" && <span className="text-sm text-muted-foreground">{stat.suffix}</span>}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="mt-3 flex items-center gap-2">
-                    <TrendingUp className="h-3 w-3 text-emerald-500" />
-                    <span className="text-xs text-muted-foreground">
-                      {stat.change}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
+                    {stat.change && (
+                      <p className="mt-3 text-xs text-muted-foreground">{stat.change}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
             </motion.div>
           ))}
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - JLPT Progress & Quick Actions */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Quick actions */}
+          <div className="space-y-6">
             {/* Quick Actions */}
             <motion.div variants={itemVariants}>
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
@@ -308,14 +295,12 @@ export default function DashboardPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
                     {quickActions.map((action) => (
-                      <motion.button
+                      <Link
                         key={action.title}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => router.push(action.href)}
-                        className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/50 transition-colors group"
+                        href={action.href}
+                        className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/50 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                       >
                         <div
                           className={cn(
@@ -323,7 +308,7 @@ export default function DashboardPage() {
                             action.color
                           )}
                         >
-                          <span className="font-japanese text-xl text-white">
+                          <span aria-hidden="true" lang="ja" className="font-japanese text-xl text-white">
                             {action.kanji}
                           </span>
                         </div>
@@ -335,123 +320,16 @@ export default function DashboardPage() {
                             {action.description}
                           </p>
                         </div>
-                      </motion.button>
+                      </Link>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* JLPT Progress */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Target className="h-4 w-4 text-[var(--torii-red)]" />
-                      Progresso JLPT
-                    </CardTitle>
-                    <Badge variant="outline" className="text-xs">
-                      Meta: N3
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {jlptProgress.map((level) => (
-                    <div key={level.level} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                            <span className="font-mono text-sm font-bold text-foreground">
-                              {level.level}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {level.progress}% completo
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {level.kanji} kanji · {level.vocab} vocab
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-sm font-mono text-muted-foreground">
-                          {level.progress}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={level.progress}
-                        className="h-2"
-                      />
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Study Heatmap */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-[var(--teal)]" />
-                      Atividade de Estudo
-                    </CardTitle>
-                    <span className="text-xs text-muted-foreground">
-                      Últimas 12 semanas
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-1">
-                    {Array.from({ length: 12 }).map((_, weekIndex) => (
-                      <div key={weekIndex} className="flex flex-col gap-1">
-                        {Array.from({ length: 7 }).map((_, dayIndex) => {
-                          const cellData = heatmapData.find(
-                            (d) => d.week === weekIndex && d.day === dayIndex
-                          )
-                          const intensity = cellData?.value || 0
-                          return (
-                            <motion.div
-                              key={dayIndex}
-                              initial={{ opacity: 0, scale: 0 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{
-                                delay: (weekIndex * 7 + dayIndex) * 0.01,
-                              }}
-                              className={cn(
-                                "w-3 h-3 rounded-sm",
-                                intensity === 0 && "bg-secondary",
-                                intensity === 1 && "bg-[var(--torii-red)]/20",
-                                intensity === 2 && "bg-[var(--torii-red)]/40",
-                                intensity === 3 && "bg-[var(--torii-red)]/60",
-                                intensity === 4 && "bg-[var(--torii-red)]/80"
-                              )}
-                              title={`${intensity} sessões`}
-                            />
-                          )
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-end gap-2 mt-3 text-xs text-muted-foreground">
-                    <span>Menos</span>
-                    <div className="flex gap-1">
-                      <div className="w-3 h-3 rounded-sm bg-secondary" />
-                      <div className="w-3 h-3 rounded-sm bg-[var(--torii-red)]/20" />
-                      <div className="w-3 h-3 rounded-sm bg-[var(--torii-red)]/40" />
-                      <div className="w-3 h-3 rounded-sm bg-[var(--torii-red)]/60" />
-                      <div className="w-3 h-3 rounded-sm bg-[var(--torii-red)]/80" />
-                    </div>
-                    <span>Mais</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
           </div>
 
-          {/* Right Column - Daily Tasks & Recent Kanji */}
+          {/* Daily tasks and catalog examples */}
           <div className="space-y-6">
             {/* Daily Tasks */}
             <motion.div variants={itemVariants}>
@@ -463,14 +341,21 @@ export default function DashboardPage() {
                       Tarefas Diárias
                     </CardTitle>
                     <span className="text-xs text-muted-foreground">
-                      2/5 completas
+                      {today && `${today.summary.tasksCompletedToday}/${today.summary.tasksTotalToday} completas`}
                     </span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-2">
+                  {tasksError ? (
+                    <p role="alert" className="text-sm text-muted-foreground">{tasksError}</p>
+                  ) : !today ? (
+                    <p role="status" className="text-sm text-muted-foreground">Carregando tarefas...</p>
+                  ) : dailyTasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Nenhuma tarefa para hoje.</p>
+                  ) : null}
                   {dailyTasks.map((task, index) => (
                     <motion.div
-                      key={index}
+                      key={task.id}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
@@ -497,7 +382,7 @@ export default function DashboardPage() {
                               : "text-muted-foreground"
                           )}
                         >
-                          {task.kanji}
+                          {task.kanjiGlyph}
                         </span>
                       </div>
                       <span
@@ -519,42 +404,40 @@ export default function DashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Recent Kanji */}
+            {/* Kanji examples */}
             <motion.div variants={itemVariants}>
               <Card className="bg-card/50 backdrop-blur-sm border-border/50">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-medium flex items-center gap-2">
                       <Languages className="h-4 w-4 text-[var(--gold)]" />
-                      Kanji Recentes
+                      Exemplos de Kanji
                     </CardTitle>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="text-xs"
-                      onClick={() => router.push("/dashboard/kanji")}
+                      asChild
                     >
-                      Ver todos
-                      <ChevronRight className="h-3 w-3 ml-1" />
+                      <Link href="/dashboard/kanji">
+                        Ver todos
+                        <ChevronRight aria-hidden="true" className="h-3 w-3 ml-1" />
+                      </Link>
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-3 gap-2">
-                    {recentKanji.map((item, index) => (
-                      <motion.div
+                    {kanjiExamples.map((item) => (
+                      <Link
                         key={item.kanji}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: index * 0.05 }}
-                        whileHover={{ scale: 1.05 }}
-                        onClick={() => router.push("/dashboard/kanji")}
-                        className="flex flex-col items-center p-3 rounded-xl bg-secondary/30 hover:bg-secondary/50 border border-border/50 cursor-pointer transition-colors group"
+                        href={`/dashboard/kanji?${new URLSearchParams({ search: item.kanji })}`}
+                        className="flex min-w-0 flex-col items-center rounded-xl border border-border/50 bg-secondary/30 p-3 transition-colors hover:bg-secondary/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                       >
-                        <span className="font-japanese text-2xl text-foreground group-hover:text-[var(--gold)] transition-colors">
+                        <span lang="ja" className="font-japanese text-2xl text-foreground">
                           {item.kanji}
                         </span>
-                        <span className="text-[10px] text-muted-foreground font-mono mt-1">
+                        <span lang="ja" className="mt-1 font-japanese text-[10px] text-muted-foreground [overflow-wrap:anywhere]">
                           {item.reading}
                         </span>
                         <Badge
@@ -563,42 +446,13 @@ export default function DashboardPage() {
                         >
                           {item.level}
                         </Badge>
-                      </motion.div>
+                      </Link>
                     ))}
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* AI Recommendation */}
-            <motion.div variants={itemVariants}>
-              <Card className="bg-gradient-to-br from-[var(--neon-blue)]/10 to-[var(--neon-blue)]/5 border-[var(--neon-blue)]/20">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[var(--neon-blue)]/20 flex items-center justify-center shrink-0">
-                      <Brain className="h-5 w-5 text-[var(--neon-blue)]" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-medium text-foreground mb-1">
-                        Recomendação AI
-                      </h3>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        Baseado no seu progresso, recomendo focar nos kanji de N4
-                        relacionados a verbos de ação. Você já dominou 72% deles!
-                      </p>
-                      <Button
-                        size="sm"
-                        onClick={() => router.push("/dashboard/ai")}
-                        className="bg-[var(--neon-blue)] hover:bg-[var(--neon-blue)]/90 text-white text-xs"
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        Começar Sessão
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
           </div>
         </div>
       </motion.div>
