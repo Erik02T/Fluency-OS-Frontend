@@ -24,6 +24,7 @@ import {
   Music,
   Clapperboard,
   Sparkles,
+  Pencil,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -50,6 +51,7 @@ import {
 } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DashboardShell } from "@/components/layout"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import {
@@ -57,6 +59,9 @@ import {
   ImmersionApiType,
   createImmersionLog,
   getImmersionLogs,
+  updateImmersionLog,
+  comprehensionToStars,
+  starsToComprehension,
   type ImmersionLogResponseDto,
   type PaginatedImmersionLogResponseDto,
 } from "@/lib/immersion-api"
@@ -150,12 +155,6 @@ const typeColors: Record<ImmersionApiType, string> = {
   [ImmersionApiType.MUSIC]: "text-fuchsia-500",
   [ImmersionApiType.MOVIE]: "text-amber-500",
   [ImmersionApiType.OTHER]: "text-muted-foreground",
-}
-
-function comprehensionToStars(comprehension: number | null): number {
-  if (comprehension === null || comprehension === undefined) return 0
-  const clamped = Math.max(0, Math.min(100, comprehension))
-  return Math.ceil(clamped / 20)
 }
 
 function startOfDay(date: Date): Date {
@@ -284,7 +283,7 @@ function computeStats(
 
   const averageComprehension =
     comprehensionCount > 0
-      ? Math.round((comprehensionSum / comprehensionCount) / 20) / 1
+      ? (comprehensionToStars(comprehensionSum / comprehensionCount) ?? 0)
       : 0
 
   // Use provided weeklyTarget or fallback to calculated value
@@ -471,7 +470,20 @@ function LoadingTypeBreakdown() {
 }
 
 export default function ImmersionPage() {
+  const { user, isInitializing } = useAdminAuth()
+  if (!user || isInitializing) {
+    return <DashboardShell title="Imersão" kanji="聴">
+      <p role="status" className="text-sm text-muted-foreground">
+        {isInitializing ? "Restaurando sua sessão..." : "Entre para consultar sua imersão."}
+      </p>
+    </DashboardShell>
+  }
+  return <ImmersionContent key={user.id} />
+}
+
+function ImmersionContent() {
   const [isAddingSession, setIsAddingSession] = React.useState(false)
+  const [editingLog, setEditingLog] = React.useState<ImmersionLogResponseDto | null>(null)
   const [isEditingGoal, setIsEditingGoal] = React.useState(false)
   const [formType, setFormType] = React.useState<string>("")
   const [formTitle, setFormTitle] = React.useState("")
@@ -496,6 +508,7 @@ export default function ImmersionPage() {
     pagination: { page: 1, perPage: PAGE_SIZE, total: 0, pages: 0 },
   })
   const [weeklyPlan, setWeeklyPlan] = React.useState<WeeklyPlanResponseDto | null>(null)
+  const logsRequest = React.useRef<AbortController | null>(null)
 
   const now = new Date()
   const allLogs = response.data
@@ -509,6 +522,7 @@ export default function ImmersionPage() {
   const typeBreakdown = computeTypeBreakdown(allLogs)
 
   const resetForm = () => {
+    setEditingLog(null)
     setFormType("")
     setFormTitle("")
     setFormEpisode("")
@@ -518,9 +532,22 @@ export default function ImmersionPage() {
     setFormLoggedAt(new Date().toISOString().split("T")[0])
   }
 
+  const editLog = (log: ImmersionLogResponseDto) => {
+    setEditingLog(log)
+    setFormType(log.type)
+    setFormTitle(log.title)
+    setFormEpisode(log.episode ?? "")
+    setFormDuration(String(log.durationMinutes))
+    setFormComprehension(log.comprehension)
+    setFormNotes(log.notes ?? "")
+    setFormLoggedAt(log.loggedAt.slice(0, 10))
+    setIsAddingSession(true)
+  }
+
   const fetchLogs = React.useCallback(async () => {
+    logsRequest.current?.abort()
     const controller = new AbortController()
-    let isActive = true
+    logsRequest.current = controller
 
     try {
       setIsLoading(true)
@@ -536,39 +563,29 @@ export default function ImmersionPage() {
         { signal: controller.signal },
       )
 
-      if (isActive) {
+      if (!controller.signal.aborted) {
         setResponse(payload)
       }
     } catch (error) {
-      if (isActive && !(error instanceof DOMException && error.name === "AbortError")) {
+      if (!controller.signal.aborted) {
         const message = parseApiMessage(getErrorMessage(error))
         console.error("[immersion-page] Failed to fetch immersion logs:", {
           error,
           message,
         })
         setErrorMessage(message)
-        toast({
-          title: "Erro ao carregar sessões",
-          description:
-            "Não foi possível carregar o histórico de imersão. Tente novamente.",
-          variant: "destructive",
-        })
       }
     } finally {
-      if (isActive) {
+      if (!controller.signal.aborted) {
         setIsLoading(false)
       }
     }
 
-    return () => {
-      isActive = false
-      controller.abort()
-    }
   }, [])
 
   const fetchWeeklyPlan = React.useCallback(async () => {
     try {
-      const plan = await getWeeklyPlan({ date: new Date().toISOString().split("T")[0] })
+      const plan = await getWeeklyPlan()
       setWeeklyPlan(plan)
       // Initialize goal value when plan loads
       const immersionGoal = plan?.goals.find(g => g.category === "IMMERSION")
@@ -638,10 +655,12 @@ export default function ImmersionPage() {
   React.useEffect(() => {
     void fetchLogs()
     void fetchWeeklyPlan()
+    return () => logsRequest.current?.abort()
   }, [fetchLogs, fetchWeeklyPlan])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
+    if (isSubmitting) return
 
     if (!formType) {
       toast({
@@ -653,7 +672,7 @@ export default function ImmersionPage() {
     }
 
     const durationNum = Number(formDuration)
-    if (!durationNum || durationNum < 1 || !Number.isFinite(durationNum)) {
+    if (!Number.isInteger(durationNum) || durationNum < 1) {
       toast({
         title: "Duração inválida",
         description: "Informe uma duração em minutos maior que zero.",
@@ -676,35 +695,30 @@ export default function ImmersionPage() {
 
       const logDate = new Date(`${formLoggedAt}T12:00:00`)
 
-      console.debug("[immersion-page] Submitting new session:", {
-        type: formType,
-        title: formTitle,
-        durationMinutes: durationNum,
-        episode: formEpisode || undefined,
-        comprehension: formComprehension ?? undefined,
-        notes: formNotes || undefined,
-        loggedAt: logDate.toISOString(),
-      })
-
-      const created = await createImmersionLog({
-        type: formType as ImmersionApiType,
+      const fields = {
         title: formTitle.trim(),
         durationMinutes: durationNum,
-        episode: formEpisode.trim() || undefined,
-        comprehension: formComprehension ?? undefined,
-        notes: formNotes.trim() || undefined,
-        isActive: true,
-        loggedAt: logDate,
-      })
-
-      console.debug("[immersion-page] Session created successfully:", {
-        id: created.id,
-        title: created.title,
-      })
+        episode: formEpisode.trim(),
+        notes: formNotes.trim(),
+      }
+      const saved = editingLog
+        ? await updateImmersionLog(editingLog.id, {
+            ...fields,
+            comprehension: formComprehension === editingLog.comprehension ? undefined : formComprehension,
+          })
+        : await createImmersionLog({
+            ...fields,
+            episode: fields.episode || undefined,
+            notes: fields.notes || undefined,
+            type: formType as ImmersionApiType,
+            comprehension: formComprehension ?? undefined,
+            isActive: true,
+            loggedAt: logDate,
+          })
 
       toast({
-        title: "Sessão registrada!",
-        description: `Adicionados ${durationNum} minutos de ${IMMERSION_TYPE_LABELS[created.type]}.`,
+        title: editingLog ? "Sessão atualizada" : "Sessão registrada!",
+        description: `${durationNum} minutos de ${IMMERSION_TYPE_LABELS[saved.type]}.`,
       })
 
       resetForm()
@@ -718,7 +732,7 @@ export default function ImmersionPage() {
         message,
       })
       toast({
-        title: "Falha ao registrar sessão",
+        title: "Falha ao salvar sessão",
         description: message || "Tente novamente em alguns minutos.",
         variant: "destructive",
       })
@@ -798,7 +812,6 @@ export default function ImmersionPage() {
                 <p>{errorMessage}</p>
                 <Button size="sm" variant="destructive" onClick={() => {
                   void fetchLogs()
-                  void fetchWeeklyPlan()
                 }}>
                   Tentar novamente
                 </Button>
@@ -944,6 +957,7 @@ export default function ImmersionPage() {
                     <Dialog
                       open={isAddingSession}
                       onOpenChange={(open) => {
+                        if (isSubmitting) return
                         setIsAddingSession(open)
                         if (!open) resetForm()
                       }}
@@ -960,13 +974,13 @@ export default function ImmersionPage() {
                       </DialogTrigger>
                       <DialogContent className="bg-card border-border">
                         <DialogHeader>
-                          <DialogTitle>Registrar Sessão de Imersão</DialogTitle>
+                          <DialogTitle>{editingLog ? "Editar sessão de imersão" : "Registrar Sessão de Imersão"}</DialogTitle>
                         </DialogHeader>
                         <form onSubmit={handleSubmit} className="space-y-4 pt-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor="im-type">Tipo</Label>
-                              <Select value={formType} onValueChange={setFormType}>
+                              <Select value={formType} onValueChange={setFormType} disabled={!!editingLog || isSubmitting}>
                                 <SelectTrigger
                                   id="im-type"
                                   className="bg-secondary/50 border-border"
@@ -1028,28 +1042,30 @@ export default function ImmersionPage() {
                                 value={formLoggedAt}
                                 onChange={(e) => setFormLoggedAt(e.target.value)}
                                 className="bg-secondary/50 border-border"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || !!editingLog}
                               />
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label>Compreensão (1 a 5 estrelas)</Label>
-                            <div className="flex gap-2" role="radiogroup" aria-label="Compreensão">
+                            <div className="flex gap-2" role="group" aria-label="Compreensão">
                               {[1, 2, 3, 4, 5].map((level) => (
                                 <Button
                                   key={level}
                                   type="button"
+                                  aria-label={`${level} ${level === 1 ? "estrela" : "estrelas"}`}
+                                  aria-pressed={comprehensionToStars(formComprehension) === level}
                                   variant={
-                                    formComprehension === level ? "default" : "outline"
+                                    comprehensionToStars(formComprehension) === level ? "default" : "outline"
                                   }
                                   className={cn(
-                                    "flex-1 h-10",
-                                    formComprehension === level &&
+                                    "h-10 min-w-0 flex-1 gap-1 px-2",
+                                    comprehensionToStars(formComprehension) === level &&
                                       "bg-[var(--gold)] text-white hover:bg-[var(--gold)]/90",
                                   )}
                                   onClick={() =>
-                                    setFormComprehension(
-                                      formComprehension === level ? null : level,
+                                    setFormComprehension((value) =>
+                                      comprehensionToStars(value) === level ? value : starsToComprehension(level),
                                     )
                                   }
                                   disabled={isSubmitting}
@@ -1057,7 +1073,7 @@ export default function ImmersionPage() {
                                   <Star
                                     className={cn(
                                       "h-4 w-4 mr-1",
-                                      formComprehension === level && "fill-current",
+                                      comprehensionToStars(formComprehension) === level && "fill-current",
                                     )}
                                   />
                                   {level}
@@ -1065,9 +1081,12 @@ export default function ImmersionPage() {
                               ))}
                             </div>
                             {formComprehension !== null && (
-                              <p className="text-[11px] text-muted-foreground">
-                                Equivale a {formComprehension * 20}% de compreensão
-                              </p>
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <p className="text-[11px] text-muted-foreground">{formComprehension}% de compreensão</p>
+                                <Button size="sm" variant="ghost" type="button" disabled={isSubmitting} onClick={() => setFormComprehension(null)}>
+                                  Remover avaliação
+                                </Button>
+                              </div>
                             )}
                           </div>
                           <div className="space-y-2">
@@ -1103,7 +1122,7 @@ export default function ImmersionPage() {
                 <CardContent className="space-y-3">
                   {isLoading ? (
                     <LoadingSessionRows />
-                  ) : allLogs.length === 0 ? (
+                  ) : errorMessage ? null : allLogs.length === 0 ? (
                     <div className="text-center py-10 space-y-3">
                       <div className="w-16 h-16 rounded-2xl bg-secondary mx-auto flex items-center justify-center">
                         <Sparkles className="h-8 w-8 text-muted-foreground" />
@@ -1188,11 +1207,12 @@ export default function ImmersionPage() {
                                 <Clock className="h-3 w-3" />
                                 {session.durationMinutes}min
                               </div>
-                              {stars > 0 ? (
-                                <div className="flex items-center justify-end gap-0.5 mt-1">
+                              {stars !== null ? (
+                                <div className="flex items-center justify-end gap-0.5 mt-1" aria-label={`${stars} de 5 estrelas`}>
                                   {[1, 2, 3, 4, 5].map((level) => (
                                     <Star
                                       key={level}
+                                      aria-hidden="true"
                                       className={cn(
                                         "w-3 h-3",
                                         level <= stars
@@ -1207,6 +1227,11 @@ export default function ImmersionPage() {
                                   s/avaliação
                                 </div>
                               )}
+                              <Button size="icon" variant="ghost" className="h-7 w-7"
+                                aria-label={`Editar sessão "${session.title}"`}
+                                onClick={() => editLog(session)}>
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
                             </div>
                           </div>
                         </motion.div>
