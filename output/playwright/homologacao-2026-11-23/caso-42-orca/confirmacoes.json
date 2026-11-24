@@ -1,0 +1,371 @@
+{
+  "kanji": [
+    {
+      "etapa": "link que abriu o detalhe",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:34.855428 - SPEECH OUTPUT: 'Entrar para estudar e revisar link.'{'established': False}",
+        "01:37:34.856679 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>Entrar <mark name=\"7:11\"/>para <mark name=\"12:19\"/>estudar <mark name=\"20:21\"/>e <mark name=\"22:29\"/>revisar <mark name=\"30:35\"/>link.</speak>'",
+        "01:37:35.045917 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:35.046928 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": "Ver detalhes de 日",
+        "text": "Ver detalhes",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard/kanji/qa-k-0?from=item%3Dqa-k-0",
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "retorno · foco após ativar Voltar",
+      "gesto": "Enter",
+      "anunciosOrca": [
+        "01:37:37.189611 - SPEECH OUTPUT: 'return ' {'established': False}",
+        "01:37:37.190650 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>return </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BODY",
+        "id": null,
+        "label": null,
+        "text": "",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": "?item=qa-k-0"
+      }
+    },
+    {
+      "etapa": "retorno · próxima parada",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:38.370696 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:38.371861 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": null,
+        "text": "日Fluency OS日本語",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard",
+        "route": "/dashboard/kanji",
+        "query": "?item=qa-k-0"
+      }
+    }
+  ],
+  "vocab": [
+    {
+      "etapa": "link que abriu o detalhe",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:42.635713 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:42.636975 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:37:42.665411 - SPEECH OUTPUT: 'Ver detalhes de 日語 visited link.'{'established': False}",
+        "01:37:42.666499 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>Ver <mark name=\"4:12\"/>detalhes <mark name=\"13:15\"/>de <mark name=\"16:18\"/>日語 <mark name=\"19:26\"/>visited <mark name=\"27:32\"/>link.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": "Ver detalhes de 日語",
+        "text": "Ver detalhes",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard/vocab/qa-v-0?from=item%3Dqa-v-0",
+        "route": "/dashboard/vocab",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "retorno · foco após ativar Voltar",
+      "gesto": "Enter",
+      "anunciosOrca": [
+        "01:37:44.671386 - SPEECH OUTPUT: 'Browse mode'{'established': False}",
+        "01:37:44.672399 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>Browse <mark name=\"7:11\"/>mode</speak>'",
+        "01:37:44.789472 - SPEECH OUTPUT: 'return ' {'established': False}",
+        "01:37:44.790537 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>return </speak>'",
+        "01:37:45.119306 - SPEECH OUTPUT: 'complementary content'{'established': False}",
+        "01:37:45.120464 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:13\"/>complementary <mark name=\"14:21\"/>content</speak>'",
+        "01:37:45.120760 - SPEECH OUTPUT: '日 link.'{'established': False}",
+        "01:37:45.121592 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:1\"/>日 <mark name=\"2:7\"/>link.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BODY",
+        "id": null,
+        "label": null,
+        "text": "",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": null,
+        "route": "/dashboard/vocab",
+        "query": "?item=qa-v-0"
+      }
+    },
+    {
+      "etapa": "retorno · próxima parada",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:45.991850 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:45.993081 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": null,
+        "text": "日Fluency OS日本語",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard",
+        "route": "/dashboard/vocab",
+        "query": "?item=qa-v-0"
+      }
+    }
+  ],
+  "grammar": [
+    {
+      "etapa": "link que abriu o detalhe",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:50.151296 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>Browse <mark name=\"7:11\"/>mode</speak>'",
+        "01:37:50.334997 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:50.336025 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:37:50.362388 - SPEECH OUTPUT: 'Ver detalhes de です visited link.'{'established': False}",
+        "01:37:50.363490 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>Ver <mark name=\"4:12\"/>detalhes <mark name=\"13:15\"/>de <mark name=\"16:18\"/>です <mark name=\"19:26\"/>visited <mark name=\"27:32\"/>link.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": "Ver detalhes de です",
+        "text": "Ver detalhes",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard/grammar/qa-N5-001?from=item%3Dqa-N5-001",
+        "route": "/dashboard/grammar",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "retorno · foco após ativar Voltar",
+      "gesto": "Enter",
+      "anunciosOrca": [
+        "01:37:52.488602 - SPEECH OUTPUT: 'return ' {'established': False}",
+        "01:37:52.489696 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>return </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BODY",
+        "id": null,
+        "label": null,
+        "text": "",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": null,
+        "route": "/dashboard/grammar",
+        "query": "?item=qa-N5-001"
+      }
+    },
+    {
+      "etapa": "retorno · próxima parada",
+      "gesto": "Tab",
+      "anunciosOrca": [
+        "01:37:53.677621 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:37:53.679167 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:37:53.714498 - SPEECH OUTPUT: '日 Fluency OS 日本語 link.'{'established': False}",
+        "01:37:53.715659 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:1\"/>日 <mark name=\"2:9\"/>Fluency <mark name=\"10:12\"/>OS <mark name=\"13:16\"/>日本語 <mark name=\"17:22\"/>link.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "A",
+        "id": null,
+        "label": null,
+        "text": "日Fluency OS日本語",
+        "expanded": null,
+        "pressed": null,
+        "role": null,
+        "href": "/dashboard",
+        "route": "/dashboard/grammar",
+        "query": "?item=qa-N5-001"
+      }
+    }
+  ],
+  "studentKanji": [
+    {
+      "etapa": "Kanji · filtro pessoal",
+      "gesto": "Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:00.237961 - SPEECH OUTPUT: 'JLPT combo box.'{'established': False}",
+        "01:38:00.239025 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:4\"/>JLPT <mark name=\"5:10\"/>combo <mark name=\"11:15\"/>box.</speak>'",
+        "01:38:00.673750 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:38:00.674751 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:38:00.705275 - SPEECH OUTPUT: 'Dominados combo box.'{'established': False}",
+        "01:38:00.706315 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:9\"/>Dominados <mark name=\"10:15\"/>combo <mark name=\"16:20\"/>box.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": "kanji-mastered",
+        "label": null,
+        "text": "Todos",
+        "expanded": "false",
+        "pressed": null,
+        "role": "combobox",
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "Kanji · filtro pessoal",
+      "gesto": "Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:01.152517 - SPEECH OUTPUT: 'Dominados combo box.'{'established': False}",
+        "01:38:01.153394 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:9\"/>Dominados <mark name=\"10:15\"/>combo <mark name=\"16:20\"/>box.</speak>'",
+        "01:38:01.810146 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:38:01.811203 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:38:01.842580 - SPEECH OUTPUT: 'Favoritos combo box.'{'established': False}",
+        "01:38:01.843608 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:9\"/>Favoritos <mark name=\"10:15\"/>combo <mark name=\"16:20\"/>box.</speak>'",
+        "01:38:02.289254 - SPEECH OUTPUT: 'Favoritos combo box.'{'established': False}",
+        "01:38:02.290058 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:9\"/>Favoritos <mark name=\"10:15\"/>combo <mark name=\"16:20\"/>box.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": "kanji-favorites",
+        "label": null,
+        "text": "Todos",
+        "expanded": "false",
+        "pressed": null,
+        "role": "combobox",
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "Kanji · filtro pessoal",
+      "gesto": "Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:02.947801 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:38:02.948875 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:38:02.977572 - SPEECH OUTPUT: 'Suspensos combo box.'{'established': False}",
+        "01:38:02.978651 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:9\"/>Suspensos <mark name=\"10:15\"/>combo <mark name=\"16:20\"/>box.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": "kanji-suspended",
+        "label": null,
+        "text": "Todos",
+        "expanded": "false",
+        "pressed": null,
+        "role": "combobox",
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "Kanji · Grade inicial",
+      "gesto": "Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:05.048738 - SPEECH OUTPUT: 'Limpar push button.'{'established': False}",
+        "01:38:05.049837 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>Limpar <mark name=\"7:11\"/>push <mark name=\"12:19\"/>button.</speak>'",
+        "01:38:05.051708 - SPEECH OUTPUT: 'Browse mode'{'established': False}",
+        "01:38:05.052448 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:6\"/>Browse <mark name=\"7:11\"/>mode</speak>'",
+        "01:38:05.489943 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:38:05.490947 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:38:05.521392 - SPEECH OUTPUT: 'Grade toggle button pressed.'{'established': False}",
+        "01:38:05.522589 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:5\"/>Grade <mark name=\"6:12\"/>toggle <mark name=\"13:19\"/>button <mark name=\"20:28\"/>pressed.</speak>'",
+        "01:38:05.964825 - SPEECH OUTPUT: 'Grade toggle button pressed.'{'established': False}",
+        "01:38:05.965684 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:5\"/>Grade <mark name=\"6:12\"/>toggle <mark name=\"13:19\"/>button <mark name=\"20:28\"/>pressed.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": null,
+        "label": "Grade",
+        "text": "",
+        "expanded": null,
+        "pressed": "true",
+        "role": null,
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "Kanji · Lista inicial",
+      "gesto": "Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:06.575377 - SPEECH OUTPUT: 'tab ' {'established': False}",
+        "01:38:06.576393 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:3\"/>tab </speak>'",
+        "01:38:06.606343 - SPEECH OUTPUT: 'Lista toggle button not pressed.'{'established': False}",
+        "01:38:06.607500 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:5\"/>Lista <mark name=\"6:12\"/>toggle <mark name=\"13:19\"/>button <mark name=\"20:23\"/>not <mark name=\"24:32\"/>pressed.</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": null,
+        "label": "Lista",
+        "text": "",
+        "expanded": null,
+        "pressed": "false",
+        "role": null,
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": ""
+      }
+    },
+    {
+      "etapa": "Kanji · Lista selecionada",
+      "gesto": "Espaço e Enter numérico",
+      "anunciosOrca": [
+        "01:38:07.051447 - SPEECH OUTPUT: 'Lista toggle button not pressed.'{'established': False}",
+        "01:38:07.052270 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:5\"/>Lista <mark name=\"6:12\"/>toggle <mark name=\"13:19\"/>button <mark name=\"20:23\"/>not <mark name=\"24:32\"/>pressed.</speak>'",
+        "01:38:07.663256 - SPEECH OUTPUT: 'space ' {'established': False}",
+        "01:38:07.664261 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:5\"/>space </speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": null,
+        "label": "Lista",
+        "text": "",
+        "expanded": null,
+        "pressed": "true",
+        "role": null,
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": "?view=list"
+      }
+    },
+    {
+      "etapa": "Kanji · Grade após escolher Lista",
+      "gesto": "Shift+Tab e Enter numérico",
+      "anunciosOrca": [
+        "01:38:09.537394 - SPEECH OUTPUT: 'left shift ' {'established': False}",
+        "01:38:09.538849 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:4\"/>left <mark name=\"5:10\"/>shift </speak>'",
+        "01:38:09.772109 - SPEECH OUTPUT: 'pressed'{'established': False}",
+        "01:38:09.773589 - SPEECH DISPATCHER: Speaking '<speak><mark name=\"0:7\"/>pressed</speak>'"
+      ],
+      "focoDOM": {
+        "tag": "BUTTON",
+        "id": null,
+        "label": "Grade",
+        "text": "",
+        "expanded": null,
+        "pressed": "false",
+        "role": null,
+        "href": null,
+        "route": "/dashboard/kanji",
+        "query": "?view=list"
+      }
+    }
+  ]
+}

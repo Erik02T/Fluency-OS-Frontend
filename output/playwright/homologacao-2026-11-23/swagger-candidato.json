@@ -1,0 +1,6346 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "AppController_getLive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "AppController_getReady",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuário registrado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dados inválidos ou senha fraca"
+          },
+          "409": {
+            "description": "Email já está em uso"
+          }
+        },
+        "summary": "Registrar novo usuário",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email ou senha inválidos"
+          }
+        },
+        "summary": "Fazer login",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access token renovado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token inválido ou expirado"
+          }
+        },
+        "summary": "Renovar access token",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logout bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Fazer logout",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Usuário autenticado retornado com sucesso"
+          },
+          "401": {
+            "description": "Token inválido ou expirado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obter usuário autenticado",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/kanji": {
+      "get": {
+        "description": "O catálogo aceita visitantes. Com sessão válida, inclui progresso quando registrado e permite filtros pessoais.",
+        "operationId": "KanjiController_list",
+        "parameters": [
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "frequency",
+                "jlpt",
+                "grade",
+                "strokes",
+                "srsLevel",
+                "mastered"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "studied",
+            "required": false,
+            "in": "query",
+            "description": "Somente itens do usuário autenticado",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "suspended",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "mastered",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "favorites",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "日",
+              "type": "string"
+            }
+          },
+          {
+            "name": "grade",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de kanjis retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedKanjiResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Listar kanjis com filtros",
+        "tags": [
+          "Kanji"
+        ]
+      }
+    },
+    "/kanji/search": {
+      "get": {
+        "operationId": "KanjiController_searchByQuery",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Termo de busca (caractere, significado, leitura ou romanização)",
+            "schema": {
+              "minLength": 1,
+              "example": "sol",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Número máximo de resultados",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50,
+              "example": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de busca retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KanjiListResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetro de busca inválido ou ausente"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Buscar kanjis por termo (full-text)",
+        "tags": [
+          "Kanji"
+        ]
+      }
+    },
+    "/kanji/search/{query}": {
+      "get": {
+        "deprecated": true,
+        "operationId": "KanjiController_searchByPath",
+        "parameters": [
+          {
+            "name": "query",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "日",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultados de busca retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KanjiListResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Buscar kanjis por termo (legado via path param)",
+        "tags": [
+          "Kanji"
+        ]
+      }
+    },
+    "/kanji/{id}": {
+      "get": {
+        "operationId": "KanjiController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do kanji (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhe do kanji retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanjiDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Kanji não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Obter detalhe completo de um kanji",
+        "tags": [
+          "Kanji"
+        ]
+      }
+    },
+    "/kanji/{id}/progress": {
+      "post": {
+        "description": "study registra estudo. review registra uma avaliação e exige correct.",
+        "operationId": "KanjiController_updateProgress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do kanji (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "study"
+                        ]
+                      },
+                      "correct": {}
+                    },
+                    "required": [
+                      "action"
+                    ]
+                  },
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/UpdateKanjiProgressDto"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "review"
+                            ]
+                          },
+                          "correct": {}
+                        },
+                        "required": [
+                          "action",
+                          "correct"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progresso atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanjiProgressResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Kanji não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Marcar kanji como estudado ou registrar avaliação SRS",
+        "tags": [
+          "Kanji"
+        ]
+      }
+    },
+    "/admin/kanjis": {
+      "get": {
+        "operationId": "AdminKanjiController_list",
+        "parameters": [
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "frequency",
+                "jlpt",
+                "grade",
+                "strokes",
+                "srsLevel",
+                "mastered"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "suspended",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "mastered",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "favorites",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "日",
+              "type": "string"
+            }
+          },
+          {
+            "name": "grade",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista administrativa de kanjis retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedKanjiResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar kanjis para administração",
+        "tags": [
+          "Admin Kanji"
+        ]
+      },
+      "post": {
+        "operationId": "AdminKanjiController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKanjiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Kanji criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanjiDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Criar kanji",
+        "tags": [
+          "Admin Kanji"
+        ]
+      }
+    },
+    "/admin/kanjis/{id}": {
+      "put": {
+        "operationId": "AdminKanjiController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateKanjiDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Kanji atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KanjiDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar kanji completo",
+        "tags": [
+          "Admin Kanji"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminKanjiController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Kanji removido com sucesso"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remover kanji",
+        "tags": [
+          "Admin Kanji"
+        ]
+      }
+    },
+    "/vocabulary": {
+      "get": {
+        "operationId": "VocabularyController_list",
+        "parameters": [
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "frequency",
+                "jlpt",
+                "word",
+                "createdAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "食べる",
+              "type": "string"
+            }
+          },
+          {
+            "name": "studied",
+            "required": false,
+            "in": "query",
+            "description": "Somente itens do usuário autenticado",
+            "schema": {
+              "enum": [
+                "true"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de vocabulário retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedVocabularyResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Listar vocabulário com filtros e paginação",
+        "tags": [
+          "Vocabulary"
+        ]
+      }
+    },
+    "/vocabulary/{id}": {
+      "get": {
+        "operationId": "VocabularyController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do vocabulário (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhe do vocabulário retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Vocabulário não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Obter detalhe completo de um item de vocabulário",
+        "tags": [
+          "Vocabulary"
+        ]
+      }
+    },
+    "/vocabulary/{id}/progress": {
+      "post": {
+        "description": "study registra estudo. review registra uma avaliação e exige correct.",
+        "operationId": "VocabularyController_updateProgress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do vocabulário (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "study"
+                        ]
+                      },
+                      "correct": {}
+                    },
+                    "required": [
+                      "action"
+                    ]
+                  },
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/UpdateVocabularyProgressDto"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "review"
+                            ]
+                          },
+                          "correct": {}
+                        },
+                        "required": [
+                          "action",
+                          "correct"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progresso atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyProgressResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido para a ação informada"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Vocabulário não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Marcar vocabulário como estudado ou registrar avaliação SRS",
+        "tags": [
+          "Vocabulary"
+        ]
+      }
+    },
+    "/admin/vocabularies": {
+      "get": {
+        "operationId": "AdminVocabularyController_list",
+        "parameters": [
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista administrativa de vocabulários",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedVocabularyResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar vocabulários para administração",
+        "tags": [
+          "Admin Vocabulary"
+        ]
+      },
+      "post": {
+        "operationId": "AdminVocabularyController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVocabularyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vocabulário criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Criar vocabulário",
+        "tags": [
+          "Admin Vocabulary"
+        ]
+      }
+    },
+    "/admin/vocabularies/{id}": {
+      "put": {
+        "operationId": "AdminVocabularyController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVocabularyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vocabulário atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VocabularyDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar vocabulário",
+        "tags": [
+          "Admin Vocabulary"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminVocabularyController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Vocabulário removido com sucesso"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remover vocabulário",
+        "tags": [
+          "Admin Vocabulary"
+        ]
+      }
+    },
+    "/grammar": {
+      "get": {
+        "description": "Inclui progresso quando houver uma sessão válida e registro para o item.",
+        "operationId": "GrammarController_list",
+        "parameters": [
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "difficulty",
+                "jlpt",
+                "pattern",
+                "createdAt",
+                "position"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "〜ている",
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "difficulty",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de gramática retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedGrammarResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Listar pontos gramaticais publicados com filtros e paginação",
+        "tags": [
+          "Grammar"
+        ]
+      }
+    },
+    "/grammar/{id}": {
+      "get": {
+        "operationId": "GrammarController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do ponto gramatical (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhe da gramática retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ponto gramatical não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          },
+          {}
+        ],
+        "summary": "Obter detalhe completo de um ponto gramatical",
+        "tags": [
+          "Grammar"
+        ]
+      }
+    },
+    "/grammar/{id}/progress": {
+      "post": {
+        "description": "study registra estudo. review exige understood e confidenceLevel entre 0 e 5. Apenas pontos publicados aceitam progresso.",
+        "operationId": "GrammarController_updateProgress",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID único do ponto gramatical (cuid)",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "action": {
+                        "type": "string",
+                        "enum": [
+                          "study"
+                        ]
+                      },
+                      "understood": {},
+                      "confidenceLevel": {}
+                    },
+                    "required": [
+                      "action"
+                    ]
+                  },
+                  {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/UpdateGrammarProgressDto"
+                      },
+                      {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "review"
+                            ]
+                          },
+                          "understood": {},
+                          "confidenceLevel": {}
+                        },
+                        "required": [
+                          "action",
+                          "understood",
+                          "confidenceLevel"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Progresso atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarProgressResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido para a ação informada"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Ponto gramatical não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Marcar ponto gramatical como estudado ou revisado",
+        "tags": [
+          "Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points": {
+      "get": {
+        "operationId": "AdminGrammarController_list",
+        "parameters": [
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "difficulty",
+                "jlpt",
+                "pattern",
+                "createdAt",
+                "position"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "ている",
+              "type": "string"
+            }
+          },
+          {
+            "name": "difficulty",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 2,
+              "type": "number"
+            }
+          },
+          {
+            "name": "tag",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "verb",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "PENDING",
+                "GENERATED",
+                "VALIDATED",
+                "REVIEWED",
+                "PUBLISHED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "jlpt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "N5",
+                "N4",
+                "N3",
+                "N2",
+                "N1"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista administrativa de gramática retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedGrammarResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar pontos gramaticais para administração",
+        "tags": [
+          "Admin Grammar"
+        ]
+      },
+      "post": {
+        "operationId": "AdminGrammarController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGrammarPointDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ponto gramatical criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Criar ponto gramatical",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/{id}": {
+      "get": {
+        "operationId": "AdminGrammarController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalhe administrativo da gramática retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ponto gramatical não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obter detalhe completo de ponto gramatical (admin)",
+        "tags": [
+          "Admin Grammar"
+        ]
+      },
+      "put": {
+        "operationId": "AdminGrammarController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGrammarPointDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ponto gramatical atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarDetailResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar ponto gramatical completo",
+        "tags": [
+          "Admin Grammar"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminGrammarController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ponto gramatical removido com sucesso"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remover ponto gramatical",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/{id}/status": {
+      "patch": {
+        "operationId": "AdminGrammarController_patchStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "example": "clxyz1234567890",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGrammarReviewStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status de revisão atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrammarDetailResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ponto gramatical não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar status de revisão e metadados de proveniência",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/pipeline/run": {
+      "post": {
+        "operationId": "AdminGrammarController_runPipelinePhase",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Obrigatório para importação real",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunGrammarPipelineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado registrado da operação"
+          },
+          "400": {
+            "description": "Parâmetros inválidos"
+          },
+          "409": {
+            "description": "Conflito de chave ou de identidade do conteúdo"
+          },
+          "422": {
+            "description": "Conteúdo rejeitado pela validação"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Validar ou importar conteúdo de gramática",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/pipeline/runs": {
+      "get": {
+        "operationId": "AdminGrammarController_listPipelineRuns",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Consultar o histórico de operações do pipeline",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/pipeline/rollbacks": {
+      "get": {
+        "operationId": "AdminGrammarController_listRollbacks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar rollbacks disponíveis",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/admin/grammar-points/pipeline/rollback": {
+      "post": {
+        "operationId": "AdminGrammarController_executeRollback",
+        "parameters": [
+          {
+            "name": "idempotency-key",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Obrigatório para reversão real",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RollbackGrammarPipelineDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resultado registrado da reversão"
+          },
+          "400": {
+            "description": "Parâmetros inválidos"
+          },
+          "404": {
+            "description": "Reversão não encontrada"
+          },
+          "409": {
+            "description": "Conflito com alterações posteriores ou progresso de estudo"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Simular ou executar a reversão de uma importação",
+        "tags": [
+          "Admin Grammar"
+        ]
+      }
+    },
+    "/review/queue": {
+      "get": {
+        "operationId": "ReviewController_getQueue",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Fila de revisão retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Fila de itens vencidos para revisão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/queue/count": {
+      "get": {
+        "operationId": "ReviewController_getQueueCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Contagem retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewQueueCountResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Contagem de itens pendentes de revisão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions": {
+      "post": {
+        "description": "Aceita Kanji e Vocabulário. Sem tipo, inicia Kanji. O limite solicitado é limitado também pela preferência do usuário.",
+        "operationId": "ReviewController_createSession",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewSessionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sessão criada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSessionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Iniciar nova sessão de revisão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/history": {
+      "get": {
+        "operationId": "ReviewController_getHistory",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "in_progress",
+                "completed",
+                "abandoned"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico paginado retornado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedReviewSessionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Histórico de sessões do usuário",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/{id}": {
+      "get": {
+        "operationId": "ReviewController_getSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da sessão (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão retornada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSessionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obter estado de uma sessão de revisão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/{id}/stats": {
+      "get": {
+        "operationId": "ReviewController_getSessionStats",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da sessão (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estatísticas retornadas com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSessionStatsResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Estatísticas detalhadas de uma sessão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/{id}/answer": {
+      "post": {
+        "description": "Informe ID e tipo do card da sessão e qualidade de 0 a 3. Repetir a mesma resposta devolve o resultado já gravado. O tempo de resposta em milissegundos é opcional.",
+        "operationId": "ReviewController_submitAnswer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da sessão (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReviewAnswerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Resposta registrada e SRS atualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewAnswerResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão ou item não encontrado"
+          },
+          "409": {
+            "description": "Resposta divergente ou sessão fechada para novas respostas"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Registrar resposta SRS de um item",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/{id}/end": {
+      "post": {
+        "operationId": "ReviewController_endSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da sessão (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão encerrada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSessionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          },
+          "409": {
+            "description": "Sessão não está em progresso"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Encerrar sessão de revisão",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/review/sessions/{id}/abandon": {
+      "post": {
+        "operationId": "ReviewController_abandonSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da sessão (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão abandonada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSessionResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          },
+          "409": {
+            "description": "Sessão não está em progresso"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Abandonar sessão preservando progresso",
+        "tags": [
+          "Review"
+        ]
+      }
+    },
+    "/planner/tasks": {
+      "post": {
+        "operationId": "PlannerController_createTask",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePlannerTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tarefa criada com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Criar tarefa do planner",
+        "tags": [
+          "Planner"
+        ]
+      },
+      "get": {
+        "operationId": "PlannerController_listTasks",
+        "parameters": [
+          {
+            "name": "date",
+            "required": false,
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "schema": {
+              "example": "2026-10-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-05",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-11",
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "PENDING",
+                "COMPLETED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "KANJI",
+              "type": "string",
+              "enum": [
+                "KANJI",
+                "VOCABULARY",
+                "GRAMMAR",
+                "CHUNK",
+                "READING",
+                "IMMERSION",
+                "ACTIVE_STUDY",
+                "PASSIVE_STUDY",
+                "REVIEW",
+                "GENERAL",
+                "OTHER"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tarefas retornada"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar tarefas com filtros de data/status/categoria",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/tasks/{id}/history": {
+      "get": {
+        "operationId": "PlannerController_getTaskHistory",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da tarefa (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Histórico retornado com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Histórico de transições de status da tarefa (task_id + status_antigo → status_novo)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/tasks/{id}": {
+      "get": {
+        "operationId": "PlannerController_getTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da tarefa (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarefa retornada com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obter uma tarefa pelo id",
+        "tags": [
+          "Planner"
+        ]
+      },
+      "patch": {
+        "operationId": "PlannerController_updateTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da tarefa (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlannerTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tarefa atualizada com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar tarefa (campos e/ou status)",
+        "tags": [
+          "Planner"
+        ]
+      },
+      "delete": {
+        "operationId": "PlannerController_deleteTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da tarefa (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tarefa removida com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remover tarefa",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/tasks/{id}/complete": {
+      "patch": {
+        "operationId": "PlannerController_completeTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID da tarefa (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompletePlannerTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status atualizado com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Tarefa não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Concluir/reabrir tarefa (idempotente — não duplica histórico de status)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/summary/today": {
+      "get": {
+        "operationId": "PlannerController_getTodaySummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resumo retornado com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Resumo do dia (tarefas, minutos e streak)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/overview": {
+      "get": {
+        "operationId": "PlannerController_getOverview",
+        "parameters": [
+          {
+            "name": "date",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": "2026-10-10"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overview retornado com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Overview do planner (semana, hábitos, tarefas do dia, metas e resumo)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/week": {
+      "get": {
+        "operationId": "PlannerController_getWeek",
+        "parameters": [
+          {
+            "name": "date",
+            "required": false,
+            "in": "query",
+            "description": "YYYY-MM-DD",
+            "schema": {
+              "example": "2026-10-10",
+              "type": "string"
+            }
+          },
+          {
+            "name": "year",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 2026,
+              "type": "number"
+            }
+          },
+          {
+            "name": "weekNumber",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 41,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Plano retornado com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Plano inexistente (year/weekNumber)"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Plano semanal (cria com metas default se não existir para a data)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/weeks/{id}/goals": {
+      "put": {
+        "operationId": "PlannerController_updateWeekGoals",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID do plano semanal",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWeeklyGoalsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metas atualizadas com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Plano não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar metas semanais (upsert por categoria)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/planner/weeks/{id}": {
+      "patch": {
+        "operationId": "PlannerController_updateWeek",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID do plano semanal",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWeeklyPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plano atualizado com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Plano não encontrado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar plano semanal (status/notes)",
+        "tags": [
+          "Planner"
+        ]
+      }
+    },
+    "/immersion": {
+      "post": {
+        "operationId": "ImmersionController_createLog",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateImmersionLogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Sessão criada com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Registrar nova sessão de imersão",
+        "tags": [
+          "Immersion"
+        ]
+      },
+      "get": {
+        "operationId": "ImmersionController_getLogs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "perPage",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "example": 50,
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "ANIME",
+                "DRAMA",
+                "PODCAST",
+                "YOUTUBE",
+                "MANGA",
+                "NOVEL",
+                "VISUAL_NOVEL",
+                "GAME",
+                "NEWS",
+                "MUSIC",
+                "MOVIE",
+                "OTHER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Filtra loggedAt >= startDate",
+            "schema": {
+              "example": "2026-09-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "Filtra loggedAt <= endDate",
+            "schema": {
+              "example": "2026-10-10T23:59:59.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "loggedAt",
+                "durationMinutes",
+                "createdAt"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista paginada retornada com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Listar sessões de imersão do usuário",
+        "tags": [
+          "Immersion"
+        ]
+      }
+    },
+    "/immersion/{id}": {
+      "get": {
+        "operationId": "ImmersionController_getLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID do log (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão retornada com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Obter uma sessão de imersão pelo id",
+        "tags": [
+          "Immersion"
+        ]
+      },
+      "patch": {
+        "operationId": "ImmersionController_updateLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID do log (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateImmersionLogDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sessão atualizada com sucesso"
+          },
+          "400": {
+            "description": "Payload inválido"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Atualizar uma sessão de imersão",
+        "tags": [
+          "Immersion"
+        ]
+      },
+      "delete": {
+        "operationId": "ImmersionController_deleteLog",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID do log (cuid)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessão removida com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          },
+          "404": {
+            "description": "Sessão não encontrada"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remover uma sessão de imersão",
+        "tags": [
+          "Immersion"
+        ]
+      }
+    },
+    "/analytics/overview": {
+      "get": {
+        "operationId": "AnalyticsController_getOverview",
+        "parameters": [
+          {
+            "name": "period",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "7d",
+                "30d",
+                "90d",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "day",
+                "week"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Overview retornado com sucesso"
+          },
+          "401": {
+            "description": "Não autorizado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Overview analítico (resumo, série de estudo e imersão)",
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/dashboard/summary": {
+      "get": {
+        "operationId": "DashboardController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Resumo retornado com sucesso"
+          },
+          "401": {
+            "description": "Token inválido ou expirado"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Resumo unificado do dashboard (Kanji, Vocabulário, Gramática e Streaks) do usuário autenticado",
+        "tags": [
+          "Dashboard"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Fluency OS — Backend API",
+    "description": "API de backend para Fluency OS, sistema premium de aquisição natural de japonês",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Autenticação e gerenciamento de usuários"
+    },
+    {
+      "name": "Kanji",
+      "description": "Banco de Kanji com filtros e busca"
+    },
+    {
+      "name": "Vocabulary",
+      "description": "Banco de vocabulário com filtros, detalhe e progresso"
+    },
+    {
+      "name": "Grammar",
+      "description": "Banco de gramática, exemplos e progresso"
+    },
+    {
+      "name": "Review",
+      "description": "Sessões de revisão espaçada (SRS SM-2)"
+    },
+    {
+      "name": "Planner",
+      "description": "Planejamento semanal, metas e tarefas diárias"
+    },
+    {
+      "name": "Immersion",
+      "description": "Logs e acompanhamento de imersão"
+    },
+    {
+      "name": "Analytics",
+      "description": "Métricas e séries temporais de aprendizado"
+    },
+    {
+      "name": "Dashboard",
+      "description": "Resumo agregado e status do aluno"
+    },
+    {
+      "name": "Health",
+      "description": "Status da aplicação"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "Email do usuário"
+          },
+          "password": {
+            "type": "string",
+            "example": "SecurePass123",
+            "description": "Senha (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número)"
+          },
+          "name": {
+            "type": "string",
+            "example": "João Silva",
+            "description": "Nome completo do usuário"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "name"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "RefreshDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "SrsListProgressDto": {
+        "type": "object",
+        "properties": {
+          "srsLevel": {
+            "type": "integer"
+          },
+          "isMastered": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "isSuspended": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "srsLevel",
+          "isMastered",
+          "isFavorited",
+          "isSuspended"
+        ]
+      },
+      "KanjiListResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "character": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "strokes": {
+            "type": "integer"
+          },
+          "frequency": {
+            "type": "integer"
+          },
+          "grade": {
+            "type": "integer"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "onyomi": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kunyomi": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/SrsListProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "character",
+          "jlpt",
+          "strokes",
+          "frequency",
+          "grade",
+          "meanings",
+          "onyomi",
+          "kunyomi"
+        ]
+      },
+      "PaginationDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "perPage": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "pages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "perPage",
+          "total",
+          "pages"
+        ]
+      },
+      "PaginatedKanjiResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiListResponseDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationDto"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "KanjiMeaningDto": {
+        "type": "object",
+        "properties": {
+          "meaning": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "meaning",
+          "language",
+          "isPrimary"
+        ]
+      },
+      "KanjiCommonReadingDto": {
+        "type": "object",
+        "properties": {
+          "reading": {
+            "type": "string"
+          },
+          "romanization": {
+            "type": "string"
+          },
+          "isCommon": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reading",
+          "romanization",
+          "isCommon"
+        ]
+      },
+      "KanjiReadingDto": {
+        "type": "object",
+        "properties": {
+          "reading": {
+            "type": "string"
+          },
+          "romanization": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reading",
+          "romanization"
+        ]
+      },
+      "KanjiReadingsDto": {
+        "type": "object",
+        "properties": {
+          "onyomi": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiCommonReadingDto"
+            }
+          },
+          "kunyomi": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiCommonReadingDto"
+            }
+          },
+          "nanori": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiReadingDto"
+            }
+          }
+        },
+        "required": [
+          "onyomi",
+          "kunyomi"
+        ]
+      },
+      "KanjiExampleDto": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string"
+          },
+          "meaning": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "audioUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "word",
+          "reading",
+          "meaning",
+          "jlpt"
+        ]
+      },
+      "KanjiRadicalDto": {
+        "type": "object",
+        "properties": {
+          "character": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "meaning": {
+            "type": "string"
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "character",
+          "name",
+          "meaning",
+          "isPrimary"
+        ]
+      },
+      "KanjiDetailProgressDto": {
+        "type": "object",
+        "properties": {
+          "srsLevel": {
+            "type": "integer"
+          },
+          "isMastered": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "isSuspended": {
+            "type": "boolean"
+          },
+          "easeFactor": {
+            "type": "number"
+          },
+          "intervalDays": {
+            "type": "integer"
+          },
+          "nextReviewAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastReviewedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "totalReviews": {
+            "type": "integer"
+          },
+          "correctReviews": {
+            "type": "integer"
+          },
+          "streak": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "srsLevel",
+          "isMastered",
+          "isFavorited",
+          "isSuspended",
+          "easeFactor",
+          "intervalDays",
+          "nextReviewAt",
+          "totalReviews",
+          "correctReviews",
+          "streak"
+        ]
+      },
+      "KanjiDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "character": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "strokes": {
+            "type": "integer"
+          },
+          "frequency": {
+            "type": "integer"
+          },
+          "grade": {
+            "type": "integer"
+          },
+          "unicodeCodepoint": {
+            "type": "string"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiMeaningDto"
+            }
+          },
+          "readings": {
+            "$ref": "#/components/schemas/KanjiReadingsDto"
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiExampleDto"
+            }
+          },
+          "radicals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KanjiRadicalDto"
+            }
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/KanjiDetailProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "character",
+          "jlpt",
+          "strokes",
+          "frequency",
+          "grade",
+          "unicodeCodepoint",
+          "meanings",
+          "readings",
+          "examples",
+          "radicals"
+        ]
+      },
+      "UpdateKanjiProgressDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "study",
+              "review"
+            ],
+            "example": "study"
+          },
+          "correct": {
+            "type": "boolean",
+            "description": "Indica se a resposta foi correta. Obrigatório para review e ignorado para study.",
+            "example": true
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "KanjiProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "srsLevel": {
+            "type": "integer"
+          },
+          "isMastered": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "isSuspended": {
+            "type": "boolean"
+          },
+          "easeFactor": {
+            "type": "number"
+          },
+          "intervalDays": {
+            "type": "integer"
+          },
+          "nextReviewAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastReviewedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "totalReviews": {
+            "type": "integer"
+          },
+          "correctReviews": {
+            "type": "integer"
+          },
+          "addedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "masteredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "kanjiId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "srsLevel",
+          "isMastered",
+          "isFavorited",
+          "isSuspended",
+          "easeFactor",
+          "intervalDays",
+          "nextReviewAt",
+          "totalReviews",
+          "correctReviews",
+          "addedAt",
+          "kanjiId"
+        ]
+      },
+      "AdminKanjiMeaningDto": {
+        "type": "object",
+        "properties": {
+          "meaning": {
+            "type": "string",
+            "example": "sol"
+          },
+          "language": {
+            "type": "string",
+            "example": "pt-BR",
+            "default": "pt-BR"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "meaning"
+        ]
+      },
+      "AdminKanjiReadingDto": {
+        "type": "object",
+        "properties": {
+          "reading": {
+            "type": "string",
+            "example": "ニチ"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ONYOMI",
+              "KUNYOMI",
+              "NANORI"
+            ],
+            "example": "ONYOMI"
+          },
+          "romanji": {
+            "type": "string",
+            "example": "nichi"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "reading",
+          "type"
+        ]
+      },
+      "AdminKanjiExampleDto": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "example": "日本"
+          },
+          "reading": {
+            "type": "string",
+            "example": "にほん"
+          },
+          "meaning": {
+            "type": "string",
+            "example": "Japão"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          }
+        },
+        "required": [
+          "word",
+          "reading",
+          "meaning"
+        ]
+      },
+      "AdminKanjiRadicalDto": {
+        "type": "object",
+        "properties": {
+          "character": {
+            "type": "string",
+            "example": "日"
+          },
+          "name": {
+            "type": "string",
+            "example": "hi"
+          },
+          "meaning": {
+            "type": "string",
+            "example": "sol"
+          },
+          "strokeCount": {
+            "type": "number",
+            "example": 4
+          },
+          "position": {
+            "type": "number",
+            "example": 72
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "character",
+          "name",
+          "meaning",
+          "strokeCount"
+        ]
+      },
+      "CreateKanjiDto": {
+        "type": "object",
+        "properties": {
+          "character": {
+            "type": "string",
+            "example": "日"
+          },
+          "unicodeCodepoint": {
+            "type": "string",
+            "example": "U+65E5"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "grade": {
+            "type": "number",
+            "example": 1
+          },
+          "strokeCount": {
+            "type": "number",
+            "example": 4
+          },
+          "frequency": {
+            "type": "number",
+            "example": 1
+          },
+          "notes": {
+            "type": "string",
+            "example": "Day, sun"
+          },
+          "romanization": {
+            "type": "string",
+            "example": "nichi"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiMeaningDto"
+            }
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiReadingDto"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiExampleDto"
+            }
+          },
+          "radicals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiRadicalDto"
+            }
+          }
+        },
+        "required": [
+          "character",
+          "jlptLevel",
+          "meanings",
+          "readings"
+        ]
+      },
+      "UpdateKanjiDto": {
+        "type": "object",
+        "properties": {
+          "character": {
+            "type": "string",
+            "example": "日"
+          },
+          "unicodeCodepoint": {
+            "type": "string",
+            "example": "U+65E5"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "grade": {
+            "type": "number",
+            "example": 1
+          },
+          "strokeCount": {
+            "type": "number",
+            "example": 4
+          },
+          "frequency": {
+            "type": "number",
+            "example": 1
+          },
+          "notes": {
+            "type": "string",
+            "example": "Day, sun"
+          },
+          "romanization": {
+            "type": "string",
+            "example": "nichi"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiMeaningDto"
+            }
+          },
+          "readings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiReadingDto"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiExampleDto"
+            }
+          },
+          "radicals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminKanjiRadicalDto"
+            }
+          }
+        }
+      },
+      "VocabularyListResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "word": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "nullable": true
+          },
+          "frequency": {
+            "type": "number",
+            "nullable": true
+          },
+          "partOfSpeech": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "primaryMeaning": {
+            "type": "string"
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/SrsListProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "word",
+          "reading",
+          "jlpt",
+          "frequency",
+          "partOfSpeech",
+          "tags",
+          "primaryMeaning"
+        ]
+      },
+      "PaginatedVocabularyResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VocabularyListResponseDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationDto"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "VocabularyMeaningDto": {
+        "type": "object",
+        "properties": {
+          "meaning": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "meaning",
+          "context",
+          "isPrimary"
+        ]
+      },
+      "VocabularyExampleDto": {
+        "type": "object",
+        "properties": {
+          "japanese": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string",
+            "nullable": true
+          },
+          "translation": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "japanese",
+          "reading",
+          "translation",
+          "source"
+        ]
+      },
+      "SrsDetailProgressDto": {
+        "type": "object",
+        "properties": {
+          "srsLevel": {
+            "type": "integer"
+          },
+          "isMastered": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "isSuspended": {
+            "type": "boolean"
+          },
+          "easeFactor": {
+            "type": "number"
+          },
+          "intervalDays": {
+            "type": "integer"
+          },
+          "nextReviewAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastReviewedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "totalReviews": {
+            "type": "integer"
+          },
+          "correctReviews": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "srsLevel",
+          "isMastered",
+          "isFavorited",
+          "isSuspended",
+          "easeFactor",
+          "intervalDays",
+          "nextReviewAt",
+          "totalReviews",
+          "correctReviews"
+        ]
+      },
+      "VocabularyDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "word": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "nullable": true
+          },
+          "frequency": {
+            "type": "number",
+            "nullable": true
+          },
+          "partOfSpeech": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "audioUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VocabularyMeaningDto"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VocabularyExampleDto"
+            }
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/SrsDetailProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "word",
+          "reading",
+          "jlpt",
+          "frequency",
+          "partOfSpeech",
+          "tags",
+          "notes",
+          "audioUrl",
+          "meanings",
+          "examples"
+        ]
+      },
+      "UpdateVocabularyProgressDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "study",
+              "review"
+            ],
+            "example": "study"
+          },
+          "correct": {
+            "type": "boolean",
+            "description": "Indica se a resposta foi correta. Obrigatório para review e ignorado para study.",
+            "example": true
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "VocabularyProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "srsLevel": {
+            "type": "integer"
+          },
+          "isMastered": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "isSuspended": {
+            "type": "boolean"
+          },
+          "easeFactor": {
+            "type": "number"
+          },
+          "intervalDays": {
+            "type": "integer"
+          },
+          "nextReviewAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastReviewedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "totalReviews": {
+            "type": "integer"
+          },
+          "correctReviews": {
+            "type": "integer"
+          },
+          "addedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "masteredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "vocabularyId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "srsLevel",
+          "isMastered",
+          "isFavorited",
+          "isSuspended",
+          "easeFactor",
+          "intervalDays",
+          "nextReviewAt",
+          "totalReviews",
+          "correctReviews",
+          "addedAt",
+          "vocabularyId"
+        ]
+      },
+      "AdminVocabularyMeaningDto": {
+        "type": "object",
+        "properties": {
+          "meaning": {
+            "type": "string",
+            "example": "apanhar (objeto), pegar"
+          },
+          "context": {
+            "type": "object",
+            "example": "usado em contextos formais"
+          },
+          "isPrimary": {
+            "type": "boolean",
+            "example": true,
+            "default": false
+          }
+        },
+        "required": [
+          "meaning"
+        ]
+      },
+      "AdminVocabularyExampleDto": {
+        "type": "object",
+        "properties": {
+          "japanese": {
+            "type": "string",
+            "example": "本を取ります。"
+          },
+          "reading": {
+            "type": "object",
+            "example": "ほんをとります。"
+          },
+          "translation": {
+            "type": "string",
+            "example": "Pego o livro."
+          },
+          "source": {
+            "type": "object",
+            "example": "Tatoeba"
+          }
+        },
+        "required": [
+          "japanese",
+          "translation"
+        ]
+      },
+      "CreateVocabularyDto": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "example": "取る"
+          },
+          "reading": {
+            "type": "string",
+            "example": "とる"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "frequency": {
+            "type": "number",
+            "example": 120
+          },
+          "partOfSpeech": {
+            "type": "object",
+            "example": "verb (godan)"
+          },
+          "tags": {
+            "example": [
+              "daily",
+              "formal"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "object"
+          },
+          "audioUrl": {
+            "type": "object"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminVocabularyMeaningDto"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminVocabularyExampleDto"
+            }
+          }
+        },
+        "required": [
+          "word",
+          "reading",
+          "jlptLevel",
+          "meanings"
+        ]
+      },
+      "UpdateVocabularyDto": {
+        "type": "object",
+        "properties": {
+          "word": {
+            "type": "string",
+            "example": "取る"
+          },
+          "reading": {
+            "type": "string",
+            "example": "とる"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "frequency": {
+            "type": "number",
+            "example": 120
+          },
+          "partOfSpeech": {
+            "type": "object",
+            "example": "verb (godan)"
+          },
+          "tags": {
+            "example": [
+              "daily",
+              "formal"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "type": "object"
+          },
+          "audioUrl": {
+            "type": "object"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminVocabularyMeaningDto"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminVocabularyExampleDto"
+            }
+          }
+        }
+      },
+      "GrammarExamplePreviewDto": {
+        "type": "object",
+        "properties": {
+          "japanese": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string",
+            "nullable": true
+          },
+          "translation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "japanese",
+          "reading",
+          "translation"
+        ]
+      },
+      "GrammarListProgressDto": {
+        "type": "object",
+        "properties": {
+          "isStudied": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "confidenceLevel": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "reviewCount": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "isStudied",
+          "isFavorited",
+          "confidenceLevel",
+          "reviewCount"
+        ]
+      },
+      "GrammarListResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "difficulty": {
+            "type": "integer"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "formalityLevel": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "shortExplanation": {
+            "type": "string"
+          },
+          "reviewStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "GENERATED",
+              "VALIDATED",
+              "REVIEWED",
+              "PUBLISHED"
+            ]
+          },
+          "examplesPreview": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrammarExamplePreviewDto"
+            }
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/GrammarListProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "pattern",
+          "title",
+          "jlpt",
+          "difficulty",
+          "position",
+          "formalityLevel",
+          "tags",
+          "shortExplanation",
+          "reviewStatus",
+          "examplesPreview"
+        ]
+      },
+      "PaginatedGrammarResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrammarListResponseDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationDto"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "GrammarExampleDto": {
+        "type": "object",
+        "properties": {
+          "japanese": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string",
+            "nullable": true
+          },
+          "translation": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "isNatural": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "japanese",
+          "reading",
+          "translation",
+          "notes",
+          "isNatural"
+        ]
+      },
+      "GrammarDetailProgressDto": {
+        "type": "object",
+        "properties": {
+          "isStudied": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "confidenceLevel": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "reviewCount": {
+            "type": "integer"
+          },
+          "studiedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "isStudied",
+          "isFavorited",
+          "confidenceLevel",
+          "reviewCount"
+        ]
+      },
+      "GrammarDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "jlpt": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "difficulty": {
+            "type": "integer"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "formalityLevel": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "shortExplanation": {
+            "type": "string"
+          },
+          "reviewStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "GENERATED",
+              "VALIDATED",
+              "REVIEWED",
+              "PUBLISHED"
+            ]
+          },
+          "detailedExplanation": {
+            "type": "string",
+            "nullable": true
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GrammarExampleDto"
+            }
+          },
+          "source": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentVersion": {
+            "type": "integer"
+          },
+          "reviewedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "userProgress": {
+            "$ref": "#/components/schemas/GrammarDetailProgressDto"
+          }
+        },
+        "required": [
+          "id",
+          "pattern",
+          "title",
+          "jlpt",
+          "difficulty",
+          "position",
+          "formalityLevel",
+          "tags",
+          "shortExplanation",
+          "reviewStatus",
+          "detailedExplanation",
+          "examples",
+          "source",
+          "sourceId",
+          "contentVersion",
+          "reviewedAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateGrammarProgressDto": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "study",
+              "review"
+            ],
+            "example": "study"
+          },
+          "understood": {
+            "type": "boolean",
+            "description": "Indica se o ponto foi compreendido. Obrigatório para review e ignorado para study.",
+            "example": true
+          },
+          "confidenceLevel": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5,
+            "description": "Confiança selecionada pelo estudante. Obrigatório para review e ignorado para study.",
+            "example": 4
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "GrammarProgressResponseDto": {
+        "type": "object",
+        "properties": {
+          "isStudied": {
+            "type": "boolean"
+          },
+          "isFavorited": {
+            "type": "boolean"
+          },
+          "confidenceLevel": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 5
+          },
+          "reviewCount": {
+            "type": "integer"
+          },
+          "studiedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          },
+          "grammarPointId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "isStudied",
+          "isFavorited",
+          "confidenceLevel",
+          "reviewCount",
+          "grammarPointId"
+        ]
+      },
+      "AdminGrammarExampleDto": {
+        "type": "object",
+        "properties": {
+          "japanese": {
+            "type": "string",
+            "example": "毎朝日本語を勉強しています。"
+          },
+          "reading": {
+            "type": "string",
+            "example": "まいあさにほんごをべんきょうしています。"
+          },
+          "translation": {
+            "type": "string",
+            "example": "Eu estudo japonês todas as manhãs."
+          },
+          "notes": {
+            "type": "string",
+            "example": "Exemplo do livro Minna no Nihongo"
+          },
+          "isNatural": {
+            "type": "boolean",
+            "example": true,
+            "default": true
+          },
+          "furigana": {
+            "example": [
+              {
+                "text": "毎朝",
+                "reading": "まいあさ"
+              },
+              {
+                "text": "日本語",
+                "reading": "にほんご"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kanjiBreakdown": {
+            "type": "object",
+            "example": {
+              "uniqueKanji": [
+                {
+                  "character": "日",
+                  "reading": "にち",
+                  "meaning": "dia"
+                }
+              ],
+              "totalKanjiCount": 1
+            }
+          },
+          "characterCount": {
+            "type": "number",
+            "example": 20
+          },
+          "wordCount": {
+            "type": "number",
+            "example": 5
+          }
+        },
+        "required": [
+          "japanese",
+          "translation"
+        ]
+      },
+      "CreateGrammarPointDto": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "example": "〜ている"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "title": {
+            "type": "string",
+            "example": "Ação contínua / progressiva"
+          },
+          "shortExplanation": {
+            "type": "string",
+            "example": "Indica que uma ação está em andamento ou é um hábito."
+          },
+          "detailedExplanation": {
+            "type": "string",
+            "example": "Explicação detalhada longa sobre 〜ている..."
+          },
+          "formalityLevel": {
+            "type": "string",
+            "example": "neutral",
+            "default": "neutral"
+          },
+          "difficulty": {
+            "type": "number",
+            "example": 2,
+            "default": 1,
+            "minimum": 1,
+            "maximum": 5
+          },
+          "position": {
+            "type": "number",
+            "example": 12,
+            "default": 0
+          },
+          "tags": {
+            "example": [
+              "verb",
+              "te-form",
+              "estado"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminGrammarExampleDto"
+            }
+          },
+          "patternFurigana": {
+            "example": [
+              {
+                "text": "〜て",
+                "reading": "〜て"
+              },
+              {
+                "text": "いる",
+                "reading": "いる"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "patternKanjiBreakdown": {
+            "type": "object",
+            "example": {
+              "uniqueKanji": [],
+              "totalKanjiCount": 0
+            }
+          },
+          "enrichmentData": {
+            "type": "object",
+            "example": {
+              "enrichedAt": "2026-09-30T00:00:00Z",
+              "enricherVersion": "1.0.0",
+              "totalUniqueKanji": 0
+            }
+          },
+          "validationMetadata": {
+            "type": "object",
+            "example": {
+              "validatedAt": "2026-09-30T00:00:00Z",
+              "contentHash": "abc123...",
+              "warnings": []
+            }
+          },
+          "source": {
+            "type": "string",
+            "example": "tanos"
+          },
+          "sourceId": {
+            "type": "string",
+            "example": "N5-001"
+          }
+        },
+        "required": [
+          "pattern",
+          "jlptLevel",
+          "title",
+          "shortExplanation"
+        ]
+      },
+      "UpdateGrammarPointDto": {
+        "type": "object",
+        "properties": {
+          "pattern": {
+            "type": "string",
+            "example": "〜ている"
+          },
+          "jlptLevel": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ],
+            "example": "N5"
+          },
+          "title": {
+            "type": "string",
+            "example": "Ação contínua / progressiva"
+          },
+          "shortExplanation": {
+            "type": "string",
+            "example": "Indica que uma ação está em andamento ou é um hábito."
+          },
+          "detailedExplanation": {
+            "type": "string",
+            "example": "Explicação detalhada longa sobre 〜ている..."
+          },
+          "formalityLevel": {
+            "type": "string",
+            "example": "neutral",
+            "default": "neutral"
+          },
+          "difficulty": {
+            "type": "number",
+            "example": 2,
+            "default": 1,
+            "minimum": 1,
+            "maximum": 5
+          },
+          "position": {
+            "type": "number",
+            "example": 12,
+            "default": 0
+          },
+          "tags": {
+            "example": [
+              "verb",
+              "te-form",
+              "estado"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "examples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminGrammarExampleDto"
+            }
+          },
+          "patternFurigana": {
+            "example": [
+              {
+                "text": "〜て",
+                "reading": "〜て"
+              },
+              {
+                "text": "いる",
+                "reading": "いる"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "patternKanjiBreakdown": {
+            "type": "object",
+            "example": {
+              "uniqueKanji": [],
+              "totalKanjiCount": 0
+            }
+          },
+          "enrichmentData": {
+            "type": "object",
+            "example": {
+              "enrichedAt": "2026-09-30T00:00:00Z",
+              "enricherVersion": "1.0.0",
+              "totalUniqueKanji": 0
+            }
+          },
+          "validationMetadata": {
+            "type": "object",
+            "example": {
+              "validatedAt": "2026-09-30T00:00:00Z",
+              "contentHash": "abc123...",
+              "warnings": []
+            }
+          },
+          "source": {
+            "type": "string",
+            "example": "tanos"
+          },
+          "sourceId": {
+            "type": "string",
+            "example": "N5-001"
+          }
+        }
+      },
+      "UpdateGrammarReviewStatusDto": {
+        "type": "object",
+        "properties": {
+          "reviewStatus": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "GENERATED",
+              "VALIDATED",
+              "REVIEWED",
+              "PUBLISHED"
+            ],
+            "description": "Novo status de revisão do ponto gramatical",
+            "example": "REVIEWED"
+          },
+          "source": {
+            "type": "string",
+            "description": "Origem do dado (ex: \"manual\", \"pdf-n5\", \"ai-generated\")",
+            "example": "pdf-n5"
+          },
+          "sourceId": {
+            "type": "string",
+            "description": "ID do item na fonte de origem",
+            "example": "GrammarList.N5.p42"
+          }
+        }
+      },
+      "RunGrammarPipelineDto": {
+        "type": "object",
+        "properties": {
+          "phase": {
+            "type": "string",
+            "enum": [
+              "validate",
+              "import"
+            ]
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "N5",
+              "N4",
+              "N3",
+              "N2",
+              "N1"
+            ]
+          },
+          "dryRun": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "phase",
+          "level"
+        ]
+      },
+      "RollbackGrammarPipelineDto": {
+        "type": "object",
+        "properties": {
+          "rollbackId": {
+            "type": "string"
+          },
+          "dryRun": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "rollbackId"
+        ]
+      },
+      "ReviewKanjiReadingsDto": {
+        "type": "object",
+        "properties": {
+          "onyomi": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "kunyomi": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "onyomi",
+          "kunyomi"
+        ]
+      },
+      "ReviewQueueKanjiItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "character": {
+            "type": "string"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "readings": {
+            "$ref": "#/components/schemas/ReviewKanjiReadingsDto"
+          },
+          "jlpt": {
+            "type": "string"
+          },
+          "strokes": {
+            "type": "integer"
+          },
+          "grade": {
+            "type": "integer"
+          },
+          "frequency": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "character",
+          "meanings",
+          "readings",
+          "jlpt",
+          "strokes"
+        ]
+      },
+      "ReviewQueueKanjiCardDto": {
+        "type": "object",
+        "properties": {
+          "progress_id": {
+            "type": "string"
+          },
+          "srs_level": {
+            "type": "integer"
+          },
+          "last_reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "review_count": {
+            "type": "integer"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "kanji"
+            ]
+          },
+          "item": {
+            "$ref": "#/components/schemas/ReviewQueueKanjiItemDto"
+          }
+        },
+        "required": [
+          "progress_id",
+          "srs_level",
+          "last_reviewed_at",
+          "next_review_at",
+          "review_count",
+          "item_type",
+          "item"
+        ]
+      },
+      "ReviewQueueVocabularyItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "word": {
+            "type": "string"
+          },
+          "reading": {
+            "type": "string"
+          },
+          "meanings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "jlpt": {
+            "type": "string",
+            "nullable": true
+          },
+          "partOfSpeech": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "word",
+          "reading",
+          "meanings"
+        ]
+      },
+      "ReviewQueueVocabularyCardDto": {
+        "type": "object",
+        "properties": {
+          "progress_id": {
+            "type": "string"
+          },
+          "srs_level": {
+            "type": "integer"
+          },
+          "last_reviewed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "review_count": {
+            "type": "integer"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "vocabulary"
+            ]
+          },
+          "item": {
+            "$ref": "#/components/schemas/ReviewQueueVocabularyItemDto"
+          }
+        },
+        "required": [
+          "progress_id",
+          "srs_level",
+          "last_reviewed_at",
+          "next_review_at",
+          "review_count",
+          "item_type",
+          "item"
+        ]
+      },
+      "ReviewQueueTotalsDto": {
+        "type": "object",
+        "properties": {
+          "kanji": {
+            "type": "integer"
+          },
+          "vocabulary": {
+            "type": "integer"
+          },
+          "grammar": {
+            "type": "integer",
+            "enum": [
+              0
+            ],
+            "description": "Gramática usa revisão de compreensão fora da fila SRS."
+          }
+        },
+        "required": [
+          "kanji",
+          "vocabulary",
+          "grammar"
+        ]
+      },
+      "ReviewQueueResponseDto": {
+        "type": "object",
+        "properties": {
+          "total_due": {
+            "type": "integer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReviewQueueKanjiCardDto"
+                },
+                {
+                  "$ref": "#/components/schemas/ReviewQueueVocabularyCardDto"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "item_type",
+                "mapping": {
+                  "kanji": "#/components/schemas/ReviewQueueKanjiCardDto",
+                  "vocabulary": "#/components/schemas/ReviewQueueVocabularyCardDto"
+                }
+              }
+            }
+          },
+          "by_type": {
+            "$ref": "#/components/schemas/ReviewQueueTotalsDto"
+          }
+        },
+        "required": [
+          "total_due",
+          "items",
+          "by_type"
+        ]
+      },
+      "ReviewQueueCountResponseDto": {
+        "type": "object",
+        "properties": {
+          "kanji": {
+            "type": "integer"
+          },
+          "vocabulary": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kanji",
+          "vocabulary",
+          "total"
+        ]
+      },
+      "CreateReviewSessionDto": {
+        "type": "object",
+        "properties": {
+          "session_type": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary"
+            ],
+            "default": "kanji",
+            "description": "Tipo da sessão. Tem precedência sobre sessionType."
+          },
+          "sessionType": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary"
+            ],
+            "example": "kanji",
+            "description": "Alias de session_type."
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 500,
+            "example": 20
+          }
+        }
+      },
+      "ReviewAnswerItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary",
+              "sentence"
+            ]
+          },
+          "item_id": {
+            "type": "string"
+          },
+          "quality": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "quality_name": {
+            "type": "string",
+            "enum": [
+              "blackout",
+              "wrong",
+              "correct_hard",
+              "correct_easy"
+            ]
+          },
+          "response_time_ms": {
+            "type": "number",
+            "nullable": true
+          },
+          "srs_level_before": {
+            "type": "integer"
+          },
+          "srs_level_after": {
+            "type": "integer"
+          },
+          "interval_before": {
+            "type": "integer"
+          },
+          "interval_after": {
+            "type": "integer"
+          },
+          "answered_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "item_type",
+          "item_id",
+          "quality",
+          "quality_name",
+          "srs_level_before",
+          "srs_level_after",
+          "interval_before",
+          "interval_after",
+          "answered_at"
+        ]
+      },
+      "ReviewSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": "string"
+          },
+          "session_type": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary",
+              "sentence"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed",
+              "abandoned"
+            ]
+          },
+          "total_items": {
+            "type": "integer"
+          },
+          "reviewed_items": {
+            "type": "integer"
+          },
+          "correct_items": {
+            "type": "integer"
+          },
+          "incorrect_items": {
+            "type": "integer"
+          },
+          "accuracy_rate": {
+            "type": "number",
+            "nullable": true
+          },
+          "duration_seconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "abandoned_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cards": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/ReviewQueueKanjiCardDto"
+                },
+                {
+                  "$ref": "#/components/schemas/ReviewQueueVocabularyCardDto"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "item_type",
+                "mapping": {
+                  "kanji": "#/components/schemas/ReviewQueueKanjiCardDto",
+                  "vocabulary": "#/components/schemas/ReviewQueueVocabularyCardDto"
+                }
+              }
+            }
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewAnswerItemDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "user_id",
+          "session_type",
+          "status",
+          "total_items",
+          "reviewed_items",
+          "correct_items",
+          "incorrect_items",
+          "accuracy_rate",
+          "duration_seconds",
+          "started_at",
+          "completed_at"
+        ]
+      },
+      "PaginatedReviewSessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewSessionResponseDto"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationDto"
+          }
+        },
+        "required": [
+          "data",
+          "pagination"
+        ]
+      },
+      "QualityBreakdownDto": {
+        "type": "object",
+        "properties": {
+          "blackout": {
+            "type": "integer"
+          },
+          "wrong": {
+            "type": "integer"
+          },
+          "correct_hard": {
+            "type": "integer"
+          },
+          "correct_easy": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "blackout",
+          "wrong",
+          "correct_hard",
+          "correct_easy"
+        ]
+      },
+      "ReviewSessionStatsResponseDto": {
+        "type": "object",
+        "properties": {
+          "session_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "in_progress",
+              "completed",
+              "abandoned"
+            ]
+          },
+          "session_type": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary",
+              "sentence"
+            ]
+          },
+          "total_items": {
+            "type": "integer"
+          },
+          "reviewed_items": {
+            "type": "integer"
+          },
+          "correct_items": {
+            "type": "integer"
+          },
+          "incorrect_items": {
+            "type": "integer"
+          },
+          "accuracy_rate": {
+            "type": "number"
+          },
+          "duration_seconds": {
+            "type": "integer"
+          },
+          "average_response_time_ms": {
+            "type": "number",
+            "nullable": true
+          },
+          "mastered_count": {
+            "type": "integer"
+          },
+          "quality_breakdown": {
+            "$ref": "#/components/schemas/QualityBreakdownDto"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completed_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "session_id",
+          "status",
+          "session_type",
+          "total_items",
+          "reviewed_items",
+          "correct_items",
+          "incorrect_items",
+          "accuracy_rate",
+          "duration_seconds",
+          "mastered_count",
+          "quality_breakdown",
+          "started_at",
+          "completed_at"
+        ]
+      },
+      "SubmitReviewAnswerDto": {
+        "type": "object",
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "example": "clxyz1234567890"
+          },
+          "itemId": {
+            "type": "string",
+            "example": "clxyz1234567890"
+          },
+          "item_type": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary"
+            ],
+            "example": "kanji"
+          },
+          "itemType": {
+            "type": "string",
+            "enum": [
+              "kanji",
+              "vocabulary"
+            ],
+            "example": "kanji"
+          },
+          "answer_quality": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3,
+            "example": 2
+          },
+          "answerQuality": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3,
+            "example": 2
+          },
+          "quality": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3,
+            "example": 2
+          },
+          "response_time_ms": {
+            "type": "number",
+            "minimum": 0,
+            "example": 3200
+          },
+          "responseTimeMs": {
+            "type": "number",
+            "minimum": 0,
+            "example": 3200
+          }
+        }
+      },
+      "SessionProgressDto": {
+        "type": "object",
+        "properties": {
+          "reviewed": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "correct": {
+            "type": "integer"
+          },
+          "incorrect": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reviewed",
+          "total",
+          "correct",
+          "incorrect"
+        ]
+      },
+      "ReviewAnswerResponseDto": {
+        "type": "object",
+        "properties": {
+          "previous_srs_level": {
+            "type": "integer"
+          },
+          "new_srs_level": {
+            "type": "integer"
+          },
+          "previous_interval": {
+            "type": "integer"
+          },
+          "new_interval": {
+            "type": "integer"
+          },
+          "next_review_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "is_mastered": {
+            "type": "boolean"
+          },
+          "session_progress": {
+            "$ref": "#/components/schemas/SessionProgressDto"
+          }
+        },
+        "required": [
+          "previous_srs_level",
+          "new_srs_level",
+          "previous_interval",
+          "new_interval",
+          "next_review_at",
+          "is_mastered",
+          "session_progress"
+        ]
+      },
+      "CreatePlannerTaskDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Revisar 10 kanjis do N5"
+          },
+          "description": {
+            "type": "string",
+            "example": "Foco em leitura e escrita"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "KANJI",
+              "VOCABULARY",
+              "GRAMMAR",
+              "CHUNK",
+              "READING",
+              "IMMERSION",
+              "ACTIVE_STUDY",
+              "PASSIVE_STUDY",
+              "REVIEW",
+              "GENERAL",
+              "OTHER"
+            ],
+            "example": "KANJI"
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-10-10",
+            "description": "YYYY-MM-DD no timezone do usuário"
+          },
+          "scheduledTime": {
+            "type": "string",
+            "example": "19:30",
+            "description": "HH:mm"
+          },
+          "estimatedMinutes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 720,
+            "example": 20
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "example": "MEDIUM"
+          }
+        },
+        "required": [
+          "title",
+          "date"
+        ]
+      },
+      "CompletePlannerTaskDto": {
+        "type": "object",
+        "properties": {
+          "completed": {
+            "type": "boolean",
+            "description": "Estado desejado. Omitido = toggle. Concluir uma tarefa já concluída é idempotente (sem histórico novo).",
+            "example": true
+          },
+          "actualMinutes": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 720,
+            "example": 25
+          }
+        }
+      },
+      "UpdatePlannerTaskDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Revisar 10 kanjis do N5"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "KANJI",
+              "VOCABULARY",
+              "GRAMMAR",
+              "CHUNK",
+              "READING",
+              "IMMERSION",
+              "ACTIVE_STUDY",
+              "PASSIVE_STUDY",
+              "REVIEW",
+              "GENERAL",
+              "OTHER"
+            ]
+          },
+          "date": {
+            "type": "string",
+            "example": "2026-10-10"
+          },
+          "scheduledTime": {
+            "type": "string",
+            "example": "19:30"
+          },
+          "estimatedMinutes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 720
+          },
+          "actualMinutes": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 720
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "COMPLETED"
+            ]
+          }
+        }
+      },
+      "WeeklyGoalItemDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "IMMERSION",
+              "KANJI",
+              "VOCABULARY",
+              "GRAMMAR",
+              "GENERAL_REVIEW",
+              "READING",
+              "ACTIVE_STUDY",
+              "PASSIVE_STUDY"
+            ],
+            "example": "IMMERSION"
+          },
+          "targetValue": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000,
+            "example": 450
+          },
+          "unit": {
+            "type": "string",
+            "example": "min"
+          }
+        },
+        "required": [
+          "category",
+          "targetValue"
+        ]
+      },
+      "UpdateWeeklyGoalsDto": {
+        "type": "object",
+        "properties": {
+          "goals": {
+            "description": "Metas a criar/atualizar no plano (demais categorias são preservadas)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyGoalItemDto"
+            }
+          }
+        },
+        "required": [
+          "goals"
+        ]
+      },
+      "UpdateWeeklyPlanDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "COMPLETED",
+              "ARCHIVED"
+            ],
+            "example": "COMPLETED"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Semana focada em gramática"
+          }
+        }
+      },
+      "CreateImmersionLogDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ANIME",
+              "DRAMA",
+              "PODCAST",
+              "YOUTUBE",
+              "MANGA",
+              "NOVEL",
+              "VISUAL_NOVEL",
+              "GAME",
+              "NEWS",
+              "MUSIC",
+              "MOVIE",
+              "OTHER"
+            ],
+            "example": "ANIME"
+          },
+          "title": {
+            "type": "string",
+            "example": "Shingeki no Kyojin"
+          },
+          "durationMinutes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1440,
+            "example": 25
+          },
+          "episode": {
+            "type": "string",
+            "example": "EP 01"
+          },
+          "comprehension": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 65
+          },
+          "notes": {
+            "type": "string",
+            "example": "Assisti sem legendas"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "loggedAt": {
+            "type": "string",
+            "example": "2026-10-10T12:00:00.000Z",
+            "description": "ISO timestamp; default = agora"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "durationMinutes"
+        ]
+      },
+      "UpdateImmersionLogDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "Shingeki no Kyojin"
+          },
+          "episode": {
+            "type": "string",
+            "example": "EP 02"
+          },
+          "durationMinutes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1440,
+            "example": 30
+          },
+          "comprehension": {
+            "type": "object",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 70
+          },
+          "notes": {
+            "type": "string",
+            "example": "Revisitei com legendas"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+Fluency OS · API candidata · homologação de 23/11/2026
+Backend da77efe956c384524281c51c16c71709d6a87a92 · SHA-256 JS 2defe36d7f074b4956dd1be3d490b0988a9b5a18c900d63e11ed9882bdf06697
+PostgreSQL 16 e Redis 7 descartáveis · 17 migrações
+
+BOOT | readiness 200 (PostgreSQL e Redis), dashboard anônimo 401 e autenticado 200, 200, 200, limite 100.
+26/30 | GET /admin/kanjis, /admin/vocabularies, /admin/grammar-points = visitante 401, Student 403, Teacher 403, Admin 200.
+40/31 | kanji: estudo/revisão 200, versões das respostas em conformidade com schema; visitante 401, entradas inválidas 400, progresso pessoal presente e isolado.
+40/31 | vocabulary: estudo/revisão 200, versões das respostas em conformidade com schema; visitante 401, entradas inválidas 400, progresso pessoal presente e isolado.
+40/31 | grammar: estudo/revisão 200, versões das respostas em conformidade com schema; visitante 401, entradas inválidas 400, progresso pessoal presente e isolado.
+32/GRA-03 | 286 publicados de seed de referência, 40 IDs distintos em páginas consecutivas, item oculto fora da busca; detalhe e ambas as gravações do oculto retornaram 404.
+23/31/40/SRS | vocabulary 201, resposta incompleta e fora da escala 400, duas respostas concorrentes 200 idênticas com uma avaliação persistida, resposta divergente 409, acesso alheio 404, encerramento e stats 200.
+23/31/40/SRS | kanji 201, resposta incompleta e fora da escala 400, duas respostas concorrentes 200 idênticas com uma avaliação persistida, resposta divergente 409, acesso alheio 404, encerramento e stats 200.
+SRS | Duas sessões do mesmo card responderam em paralelo e serializaram a evolução; totalReviews aumentou em 2.
+40 | Todos os schemas de sucesso da revisão exercitados com a API servida.
+
+30 | /admin/kanjis escrita por Teacher 403, criação Admin 201, edição 200 e exclusão 204
+30 | /admin/vocabularies escrita por Teacher 403, criação Admin 201, edição 200 e exclusão 204
+30 | /admin/grammar-points escrita por Teacher 403, criação Admin 201, edição 200 e exclusão 204
+41 | Planner registrou criação, edição, conclusão (1/1 e 25 minutos), exclusão e contagem final 0
+41 | Imersão 35→55, Analytics 55 minutos e Dashboard 200
+
+WEB-04 | 2026-12-07T02:59:00.000Z / America/Sao_Paulo 2026-12-06 | {"tasks":["QA virada de domingo"],"total":1,"completed":0,"pending":1,"minutes":0}
+WEB-04 | 2026-12-07T03:01:00.000Z / America/Sao_Paulo 2026-12-07 | {"tasks":["QA tarefa adicional de segunda","QA virada de segunda"],"total":2,"completed":1,"pending":1,"minutes":12}
+
+Jest unitário: 285 passaram em 28 suites.
+Jest de integração: 111 passaram em 10 suites.

@@ -1,0 +1,774 @@
+{
+    "frontend":  {
+                     "branch":  "main",
+                     "commit":  "021c04040893e23820ec12b6a8717f08e00989e2",
+                     "manifestSha256":  "5d9d6dddf4786d3f29fb6e71b383489bab2b3d66e1ffde2fa4dc4a2f072bb574",
+                     "files":  [
+                                   {
+                                       "path":  ".gitignore",
+                                       "sha256":  "20a0d2251f9fc07b47c6a2765147a44d0698c38917c2f891b647c227026915b1",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/admin/login/page.tsx",
+                                       "sha256":  "dcf4572e3f85e76b28afa0c323bcc0fb3fd13f0268fdc9b51f703a91b4bf7a3d",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/ai/page.tsx",
+                                       "sha256":  "df9822fb345da8b0b90078b31f050feb0bb0d3bfcbf228bd118f2238e4d9d9bd",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/analytics/page.tsx",
+                                       "sha256":  "a8b61534373af7f395198ced40476c2936a2b168905455835d5f9a9c75f172dd",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/grammar/[id]/page.tsx",
+                                       "sha256":  "9204d3cb05eece9b5220bc5870496745b799a8c942a7514cdbd95ed710769cd8",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/grammar/admin/page.tsx",
+                                       "sha256":  "9345c003c4c67025dc212f7eb1e3533dc3c5e4a5d79a0d3cd07b27d7e565cd60",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/grammar/page.tsx",
+                                       "sha256":  "cb55b75c3bfef411f9c2b6bccfcbd6826737bc5f784ce27e42d5c960d5e5e4cc",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/immersion/page.tsx",
+                                       "sha256":  "31790b16e2d65eefca85a593c7a6799118eba6092237bcc7fe2e65668a75db13",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/kanji/[id]/page.tsx",
+                                       "sha256":  "a23dabda491f302998f4e88ca9525c1309db585ce2102fb1a0a195f7db64ad47",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/kanji/admin/page.tsx",
+                                       "sha256":  "41c80167b5825afa5a011b757a22851ea69c0a671cb262fa592b0ebd7b20ccda",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/kanji/page.tsx",
+                                       "sha256":  "784a37a2c11f91445a64ccb87b73fce096cc9b58a414973bafce36d7fc1cb69a",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/login/page.tsx",
+                                       "sha256":  "de2033e13a941218336a2a7424c1edafcfebb13227dc4a7dd6ddccb6ff8afb06",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/page.tsx",
+                                       "sha256":  "697054346a5dc2af705eedce5c2f2ce14627998e6be57ab1aa0bbd2dc01bdd63",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/planner/page.tsx",
+                                       "sha256":  "50e296f36120da9ff7aee883f5a8248395f21bc0dbfe440f28f2a6446d01ed05",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/register/page.tsx",
+                                       "sha256":  "6cf6b6ff729a7f7db17d85b9a5a8facb5158fbac6f0380a6b53e7ee5b52d721f",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/review/page.tsx",
+                                       "sha256":  "201a0df1c88d02c26f25d594b17457e5d6d73dede48fbe286c983c4696aeb22a",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/study/page.tsx",
+                                       "sha256":  "832c5b9c80aee324e5b980bdc6a49270dc013bd57b6a4442609af91c68703424",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/vocab/[id]/page.tsx",
+                                       "sha256":  "cfba53d4f122a2413cc12397241e91a4919d6ab41ae4595291ee9a5a028b7b11",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/vocab/admin/page.tsx",
+                                       "sha256":  "8fa0b58cb38719505f0965336e13213311c6e8f4fc6ba6fd8fd083264e774179",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/dashboard/vocab/page.tsx",
+                                       "sha256":  "b67c2c2d5ef785bf109585abf471461a9535f4baf34d8fc816a5af909a16e544",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/(dashboard)/layout.tsx",
+                                       "sha256":  "6cd0443c8cecae09062740737559bdcd851eee7f5883d4f095c80715a69ac3a5",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/globals.css",
+                                       "sha256":  "c86d6e0931250ca1272bb55213e28e51a72c51ce38f44098b9f4df84eccab7f7",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/layout.tsx",
+                                       "sha256":  "9c69c823378f56adb912d6aada3a327ddad3a52cfcd0d58892fc9b1deaeb6465",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "app/page.tsx",
+                                       "sha256":  "57a3830b7ab34cb280db5ce2e9315c71b60a2b5c598e8b489e87f7a6d19c687f",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components.json",
+                                       "sha256":  "a29c59e957fefd81c0bb54bb12b6bc29f8971ec252c3f8ee7e154e33ab406ce4",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/catalog/catalog-audio.tsx",
+                                       "sha256":  "630ac39776bf46a78309433346f3dac388246ea7f18926851876726adb93a766",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/catalog/catalog-detail-page.tsx",
+                                       "sha256":  "2ee32a353be5799668a9bbf66c789aa9a339d6fbc325fef997b260a73285d0a9",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/catalog/catalog-field.tsx",
+                                       "sha256":  "53fff2ed7e44d900c9cdff7cc86abe3d528a28c8570b3fe9ac0c1dc74aebef79",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/catalog/catalog-navigation.tsx",
+                                       "sha256":  "77a4d1cd4b37b3abbd7a85b8314cf4c42969dc370962721b1a0aab9e65e93885",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/catalog/catalog-presentation.tsx",
+                                       "sha256":  "152d538a4985fed85c6e7fb7a022ef25f6d83340a11130654f06605609ba65d2",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/content-admin/shared-form-sections.tsx",
+                                       "sha256":  "9d6176853d8cc0ff6cf15036355673816627c644b139949fde623fac726230ef",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/content-study-actions.tsx",
+                                       "sha256":  "6a26fc9d22dfaff34b5c6b0f0c5dd1579ca7e387bf86603e908e2a1eec09ed4c",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "components/kanji-admin/form-sections.tsx",
+                                       "sha256":  "66cce9127f317699e657c3348c5c43e448c2bd9cea112d04a09a0ae993cacb85",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/layout/command-palette.tsx",
+                                       "sha256":  "5c626a28d2e57214b4fa926dc914f93586318ebe6bb534de59a8a771f6ff8c85",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/layout/dashboard-shell.tsx",
+                                       "sha256":  "77ca4f3e1c7af3d9ab5ed548051e84f4c0b90356046dffafb8f44a301622aa9d",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/layout/index.ts",
+                                       "sha256":  "77c22462a66826986145cc29492e4177c41939e6c8dae446a2b8e7fd9a8272f4",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/layout/sidebar.tsx",
+                                       "sha256":  "10e66847bd8386a77e36942d365c3d3de0b973b0e58a2789258b19a20e9a87dd",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/layout/top-bar.tsx",
+                                       "sha256":  "d43ba22455a3542d74802695723145800b635e42b1210e6ed1144dd6cbfb7899",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/planner/add-task-modal.tsx",
+                                       "sha256":  "0eeb03b4a5c632f82fb1e257e0c7eeab64292dc53c122c34aece7243e3f5fe0b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/planner/edit-goals-modal.tsx",
+                                       "sha256":  "79c3909344ddd66c214d4b47b838721c7647e7decf25d5373b2eec617d7fe46b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/theme-provider.tsx",
+                                       "sha256":  "c3ad0a142080a20c3229c1ceefd74e3fe0fd1f371dec8b07889c9d2b448d5c50",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/accordion.tsx",
+                                       "sha256":  "a2216d32f1830b3e0990fbed98ad7a8773291416ab228fb774fda3c059218a79",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/ui/alert-dialog.tsx",
+                                       "sha256":  "b1e624af25588bd48c9f44d6c467fd2fd10fefe931d2029d426d1901f5a61a3e",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/alert.tsx",
+                                       "sha256":  "cea0f2235d4cbb0a00bdb4269e03cd1ac6aab75783d21eb04ef754a7b51f983f",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/aspect-ratio.tsx",
+                                       "sha256":  "8b96e88915893b8315199bc6897f28eb82595c57336fc8c47900d812b9f99c29",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/avatar.tsx",
+                                       "sha256":  "1b86eeb3d1c4ffc1e3bb43ba22f0ae342f6c59e8266bdfcb4f1366194f632513",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/badge.tsx",
+                                       "sha256":  "1889f8e8d355e002e8e34d8d009b2accd4898aa890047cbead95ef83c53c3120",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/breadcrumb.tsx",
+                                       "sha256":  "de707f7b731c9644736b14b80a79e5f35ffb7502c24d0904424fd30fc897a507",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/button-group.tsx",
+                                       "sha256":  "e3563b787876a4dfd559a4115f0ec29da8d3f1b9c845d42c82ab5870bfedfcf1",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/button.tsx",
+                                       "sha256":  "6eabffde44eb5f55314b219046110037dcf0f828bba2a2a4b484ca0ceb83997e",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/calendar.tsx",
+                                       "sha256":  "8f366a30ce9767dddfb13c61b1a558833d5c7c415adcb52b7c54d54e6e672d78",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/card.tsx",
+                                       "sha256":  "62e0a73f63e74fb82a4ff455e9072d3b4862e2d7e229ef51a842b6e3c8861b0d",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/carousel.tsx",
+                                       "sha256":  "5e95791be922d351dc6dcae9d54a14599e81d22abf1438bb323fc5647d780995",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/chart.tsx",
+                                       "sha256":  "c2ef20552d779aaf56b064427a7da8d831e5de6eed20fa28b64c93e89f07acd2",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/checkbox.tsx",
+                                       "sha256":  "4c27fe7be7610ea56deb130ea0a4ca95b2fc2c9aaba102240cb35b4da1578cbe",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/collapsible.tsx",
+                                       "sha256":  "2dec0182f0394ec195ac9461c71833166cbdfc45cda3a236d04101d2a9b3293e",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/command.tsx",
+                                       "sha256":  "02a3e8099c905e3cde7bc48daeaadd611aae30e1264f54c6a31088cabe4e10f2",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/ui/context-menu.tsx",
+                                       "sha256":  "0e896c4667e1d37a57f08e578a3011616565fe5af058406e598463439bf22a08",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/dialog.tsx",
+                                       "sha256":  "d08c203c1b616e8e712702205d671fd5a54e5aa8f446f95ae801e98ecc7bda16",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/drawer.tsx",
+                                       "sha256":  "8086dd4b86a2845a05c39ea7eaf251b9c2f1274182a6e008cd0a7849e8134310",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/dropdown-menu.tsx",
+                                       "sha256":  "53fddaae33695e00c4520f2c172e0d7193596b4b69d0e26ab35bc3d69117a9d4",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/empty.tsx",
+                                       "sha256":  "74cb3216841689838787fcc0d2d0a5c9f4a6668178b8cb1f62b5a916f89e62db",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/field.tsx",
+                                       "sha256":  "fb58f52970e001ccf50e084510170794d20c015e00a8abd177fdfcd3240716f7",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/form.tsx",
+                                       "sha256":  "bbbcb3b474e5e6c8675b6e0ed75abf9084c85b136ac2e451c10f10b3a6d43ce5",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/hover-card.tsx",
+                                       "sha256":  "f00f245212d1fde7f4118e66be2b541bf7f798240c302efdcee25b5de46cc013",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/input-group.tsx",
+                                       "sha256":  "45eebc8ce16b5ab11a31f534d44755140f49e149dab7b0f87182893cd05462fa",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/input-otp.tsx",
+                                       "sha256":  "fb52208d687ef2eae34f1ff19104a8d2dd293a135bd851c6551dda7d21676886",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/input.tsx",
+                                       "sha256":  "e22babbd675db6e921fcde4c1f85435dcdeba2734b10b9f4013d3c9ca5332658",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/item.tsx",
+                                       "sha256":  "6f1df5b1bee26305b9c4b587c90fdeba9978088e5109a12c1833a95dff5ebc73",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/kbd.tsx",
+                                       "sha256":  "c91d29f1e1c04d51beaf1a1b32850249937403022f17c478fc3026001fc5b2bb",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/label.tsx",
+                                       "sha256":  "d92f65d70ed214fb1be4215e4dd6aa07c38646b34711e45d19be2767a7d69cd2",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/menubar.tsx",
+                                       "sha256":  "9cdf76e0867eac5547a8f8ae0ec574775b8770f8049133aadf8803987548ee49",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/navigation-menu.tsx",
+                                       "sha256":  "8741c4da3a2dfe2e20d5c4cee03256277f5990c0608ab431b692c49369ffcbd6",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/pagination.tsx",
+                                       "sha256":  "1d20e563f31f8180eccb979af113c967b83b9df3eb0938cd460d4e3858ef9cdb",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/popover.tsx",
+                                       "sha256":  "f5d5c131b7af3f5b6de36c264a7808275f88c8438c931d175413f365bcdf2672",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/progress.tsx",
+                                       "sha256":  "670582d363b8eaab82252b33316378a61ee218a4b3de41d58df804fe5fc693e0",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/ui/radio-group.tsx",
+                                       "sha256":  "d2af767a75572d3b975d6f9b26f592d0e37d8063866b849675d90d9ae8830d86",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/resizable.tsx",
+                                       "sha256":  "a27f5919977e95961052624f983253af4f06536cbc180f40b2ec23a830c504b9",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/scroll-area.tsx",
+                                       "sha256":  "8dc1de92f3cde30161e7f9528527cca317ac194b55a94df4ee82c5e3006bb85a",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/select.tsx",
+                                       "sha256":  "6c5c9d35a4a66abb4b7f06aa8e75769b8a70c3c85fcbd333c8482f078a9f41f0",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/separator.tsx",
+                                       "sha256":  "4e291f794c76ffe1f9c59ae922fc17eeff33cd25b5eb9dc8e22fdf7daf352203",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/sheet.tsx",
+                                       "sha256":  "8e0be89741f7c47a3bc4eff6f9dc41a256a8392e24b681751b5a751f9edc5187",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/sidebar.tsx",
+                                       "sha256":  "9a1c42b9c3c159be6f600974e60ce96f5f9aa32e774fdf5e49fc996c51a273dc",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/skeleton.tsx",
+                                       "sha256":  "68bf11609c04a24c046838df50485a010c92186134a1038ba0ec77af843ee6fb",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/slider.tsx",
+                                       "sha256":  "4ca30f5d779686d195199268db26e930f0902fd6f05146ebd8e20b33a4e41b21",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/sonner.tsx",
+                                       "sha256":  "4a43851c034bb04bd94a424fa7533ff95755b64d36c2133da617bfa9d2dc75e2",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/spinner.tsx",
+                                       "sha256":  "ed524d7596437439ba5860a48a928156f7ff287734c8186a442b467c368c472a",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/switch.tsx",
+                                       "sha256":  "5911b3e86f96e9cb8de219574059ed890edd155188b6439e9febd538f1f61dc7",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/table.tsx",
+                                       "sha256":  "192371085fa448a0329774c819349c4c6985c5218fa7894b8ce938161b718536",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/tabs.tsx",
+                                       "sha256":  "ab463f98c625384d162fd97a534078d03b4f4c4c5ef218b1488f2fb07df7c7aa",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/textarea.tsx",
+                                       "sha256":  "866ea21148989a7e3b510d99a20468d0704ddf4886544ae2fbe0426ac3b3f6d9",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/toast.tsx",
+                                       "sha256":  "3be518b76a7ec71ccef4b4dc3909123502a8848bcf98a2b1a665417ce1c394cf",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/toaster.tsx",
+                                       "sha256":  "dd0b26caee8505188d53d9bfb30bcebffaf234363a111653f8e0ac00096cc6d7",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "components/ui/toggle-group.tsx",
+                                       "sha256":  "e57a6f12e2554082c776f42a3c0ed12e2a1e117bb00e74552cebb24ccae6ccc1",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/toggle.tsx",
+                                       "sha256":  "c7bcfaaeb913718082adbe6d63ce4c601ee80a34e72cace5f14a8628f1b8ba73",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/tooltip.tsx",
+                                       "sha256":  "3fb9fa3ed6b8e600da5d1cff186e9c4f36280bd97c8429ff7f13ebf5a3ee56e4",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/use-mobile.tsx",
+                                       "sha256":  "86cd781770e3b67544538f3816f55e219d43a0ecca79665fd748e9979e0b10ee",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "components/ui/use-toast.ts",
+                                       "sha256":  "b48129a98629560e496308f0125bb8a153c1665b6d25d76773311961ce44154b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "contexts/admin-auth-context.tsx",
+                                       "sha256":  "14ad09693c7c62988d02768f0c097d0c994d09821138c369eddde80df2191a97",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "eslint.config.mjs",
+                                       "sha256":  "cfbc7f4d080ba50ed299612619c34d9b4d1ff87c9af6cfe317af447646573a5d",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "hooks/use-mobile.ts",
+                                       "sha256":  "86cd781770e3b67544538f3816f55e219d43a0ecca79665fd748e9979e0b10ee",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "hooks/use-require-admin.ts",
+                                       "sha256":  "e3a9201d8d20e6f87c76a6b68c1bc86a1cfcdd8f67f114d50db19c81c17e71f7",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "hooks/use-toast.ts",
+                                       "sha256":  "b48129a98629560e496308f0125bb8a153c1665b6d25d76773311961ce44154b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "hooks/use-vocabulary-study.ts",
+                                       "sha256":  "91c9affb1a0bef6a84dc99f8aad8ba48a1073290ca5d407574fa776609fa45ce",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "lib/admin-routes.ts",
+                                       "sha256":  "0e9015bdfda00a959ac99b327e0478481710d1b8d3aaac40c09f043c9ef298c9",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/analytics-api.ts",
+                                       "sha256":  "4ae0d4c37cd93d27bce27060c314e6b497ea15ec4d25816f908c46f99e9efba4",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/auth-api.ts",
+                                       "sha256":  "05dbb3e2953fbae507ab0354c7514b3ac2477ac3fe9671faf51480d04bb6b2e7",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/auth-storage.ts",
+                                       "sha256":  "be3af07b09c79eea21abb40fbc43f82a5b1d8dd0d9aea2aee15fbc3a144aa4e0",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/auth-validation.ts",
+                                       "sha256":  "c5024bc7a493d8d59a166177acf2069d6d8ce0e047eff7f17958a148473cfb55",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/catalog-api-error.ts",
+                                       "sha256":  "921c1d0b7b3601d5a25fb12fc4965fdc4db730f855b23b89c25c33a222442363",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "lib/dashboard-api.ts",
+                                       "sha256":  "7e12f2b45afa404f1e4325cf6ac9b82594e69ef57a2cc54290900ecc1271e9f1",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/grammar-api.ts",
+                                       "sha256":  "cbd5060b516c809fce2e5dec2e1a38315295e62d29bda4c5206575f7d72aa231",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/immersion-api.ts",
+                                       "sha256":  "58e7ff113c388ca381ea312c0ad7171d30ccba53b6d2a949f8eb75908d80ba42",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/kanji-api.ts",
+                                       "sha256":  "7a3d0cded4de695382e2f9850d76e235d8a5843d9b7034d6be8a4a722a407b92",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/navigation-features.ts",
+                                       "sha256":  "4c2c1a933e628b79249902a9fdf62a96f812bf4668347f124eb7b4ead3570619",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/planner-api.ts",
+                                       "sha256":  "71098e589b71a379bc750a84744aa87cee2a2185c51974eb2b894077be7a544a",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/review-api.ts",
+                                       "sha256":  "9aaf28074e36578d398f9aad6379572b036b0bb92618f754b606b1759e3c69f4",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "lib/utils.ts",
+                                       "sha256":  "76db4720b8835194b5bb3c6e4f1049914e39a24121dee582eca62039c8c16dfb",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "lib/vocabulary-api.ts",
+                                       "sha256":  "8076a834b5d2c722aa6bab164ef41018dd688f5ead47de41ec8a05d0640c4f8c",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "middleware.ts",
+                                       "sha256":  "0a9fe9cc7391c788566c5530b6cc812b2c26137c489653c1b3964402239efe88",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "next-env.d.ts",
+                                       "sha256":  "1b59d4c6b83807db275d43f3cf2cc8e9323f465fab764eea091cc5becd5bad37",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "next.config.mjs",
+                                       "sha256":  "0deb051c759a94beb0ec9d2af60e9a6a906dff5976bf768f86371718b8eed063",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "package-lock.json",
+                                       "sha256":  "a2740bc4557e8488da41822bbef7764a4fdd8749e24a68ec778a9a5cc359101f",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "package.json",
+                                       "sha256":  "e7f077f8c92d4fd7603235250bc52abe8571f707b372787eea3ae056a67ef07d",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "pnpm-lock.yaml",
+                                       "sha256":  "49072467cb5b7c5e024c5593af5437bdb19e7251a11920d2ed5f0b95e35175f1",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "pnpm-workspace.yaml",
+                                       "sha256":  "bd916725b18414c6fc741426f7b5cca1f1ff7da7a2ca111655ca3c9eefac3ddc",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "postcss.config.mjs",
+                                       "sha256":  "f84748b4cbbee63a06463ca8836b64e77733c1a920b74ccfe7114e02080cc2e8",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/apple-icon.png",
+                                       "sha256":  "da678942d4656a903f61000551cc51c09464d7a223faaae304e8210e1ca19257",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/icon-dark-32x32.png",
+                                       "sha256":  "8a1570b2955c3748b6844356a7487d88c60f9f1e699e870a3452a3decd1ba03c",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/icon-light-32x32.png",
+                                       "sha256":  "83145e5bb033ace23cd8e7fbb63e7c39733aaf58f8a7280d7800995cced6f7c2",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/icon.svg",
+                                       "sha256":  "234f561c4db09781786f4d0b24b2ecfaf876e78544710573b046aaafead3fbe6",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/placeholder-logo.png",
+                                       "sha256":  "d7c39d978af643ba9525de6fb8171e0f834882db4110c82ecad0df3f4f69551a",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/placeholder-logo.svg",
+                                       "sha256":  "19a9e968f4656d52a4c249b4056117ad109370ba9da51cdc630ddded74cec73b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/placeholder-user.jpg",
+                                       "sha256":  "22be067d748175598a5e00123902f5c8332dd7f101de03dfb92ec08d85bb5e53",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/placeholder.jpg",
+                                       "sha256":  "14be0c7aa11cca1e78f0966176b286a6d36d00ec64be027775dfeb33d8e2dfdf",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "public/placeholder.svg",
+                                       "sha256":  "64badf7aabda0b9630b87020ffb6095cb858ccbcf66b355c2aa08b1063954d3b",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "store/index.ts",
+                                       "sha256":  "daf732c3975fbf4b3325395d2e7c46c31611ece98de672c13b359544f25a3df1",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "styles/globals.css",
+                                       "sha256":  "9f9f5625b7009f197c34e66ea62ccd5d1b9da375fe5725db6a6052fae08330a5",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tests/admin-access.test.ts",
+                                       "sha256":  "08bdcd251a2d3df91b66389085cd6c8cb639f3fc67212a9f0b4ddda841bc9e9f",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "tests/auth-api.test.ts",
+                                       "sha256":  "f5f0029a13b07458064a538ee56a288828a577ec55d9420d17a96d262c3226ec",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tests/auth-register.test.ts",
+                                       "sha256":  "b14a4cca171e8152f3783c8fa946768c44251fe8152fc478a8722ca8f78f0d87",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tests/auth-storage.test.ts",
+                                       "sha256":  "b694e5aa5744fec22fac07202836deff1758b30e96ec5983c26b91f8d078ed9e",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tests/immersion-rating.test.ts",
+                                       "sha256":  "1693b50d00499a8195c66dcd0a08bead93f719e7447e2f8d548e63e7d2bfc6bc",
+                                       "state":  "untracked"
+                                   },
+                                   {
+                                       "path":  "tests/kanji-api.test.ts",
+                                       "sha256":  "e4eca0da3b5c1e63be562a34e84b94b27121b4abc7774c598a92c59aafd90e69",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tests/planner-api.test.ts",
+                                       "sha256":  "a5a6b35fff87a7bd81696ccfa7e8aba7214bc408ca787a4b232a0f94849242b8",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "tests/review-api.test.ts",
+                                       "sha256":  "b95ff8024e1945050f4678ccb84b625dca431d1cff7627b00cbce2c36930d74b",
+                                       "state":  "modified"
+                                   },
+                                   {
+                                       "path":  "tests/vocabulary-api.test.ts",
+                                       "sha256":  "bfabf09ff02f570a44720197fc5bd5584ba6589c9f0aa447bca3adad6a5e3061",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "tsconfig.json",
+                                       "sha256":  "07e67821438fea4271144f7f5d1aa9f8020cc12a2e6f3342be3a7389d8b4d6b0",
+                                       "state":  "HEAD"
+                                   },
+                                   {
+                                       "path":  "vitest.config.ts",
+                                       "sha256":  "29c7574391bc6398e8e257a0f0903bb5299d816b2c6dd777ed263e959211626c",
+                                       "state":  "HEAD"
+                                   }
+                               ],
+                     "nextBuildId":  "I_MPile6KGPanKuoQ1E6t"
+                 },
+    "backend":  {
+                    "base":  "da77efe956c384524281c51c16c71709d6a87a92",
+                    "compiledJavaScriptSha256":  "2defe36d7f074b4956dd1be3d490b0988a9b5a18c900d63e11ed9882bdf06697"
+                },
+    "candidateEnvironment":  {
+                                 "date":  "2026-11-24",
+                                 "timeZone":  "America/Fortaleza",
+                                 "frontend":  "http://localhost:3317",
+                                 "apiHost":  "http://localhost:3316",
+                                 "apiAsSeenFromFirefox":  "http://localhost:3001",
+                                 "frontendBuild":  "Next.js 16.4.6, Webpack",
+                                 "postgres":  "16, descartável, 17 migrações",
+                                 "redis":  "7, descartável",
+                                 "firefox":  "153.7.0esr",
+                                 "screenReader":  "Orca 43.1",
+                                 "speechDispatcher":  "0.11.4, eSpeak NG",
+                                 "system":  "Debian GNU/Linux 12.15 em contêiner, Xvfb 1280x900",
+                                 "fixtures":  "286 pontos publicados e 40 exemplos, 1 ponto oculto, 30 kanjis, 30 vocábulos e 4 contas descartáveis"
+                             }
+}
