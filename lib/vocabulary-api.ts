@@ -1,4 +1,5 @@
 import { tryRefreshAdminSession } from "@/lib/auth-api"
+import { CatalogApiError } from "@/lib/catalog-api-error"
 import {
   clearStoredAdminSession,
   emitAdminSessionExpired,
@@ -183,7 +184,9 @@ async function requestJson<T>(
   })
 
   if (response.status === 401 && includeAuthToken) {
+    options.signal?.throwIfAborted()
     const refreshedToken = await tryRefreshAdminSession()
+    options.signal?.throwIfAborted()
 
     if (refreshedToken) {
       updateStoredAccessToken(refreshedToken)
@@ -202,13 +205,14 @@ async function requestJson<T>(
   }
 
   if (shouldExpireSession) {
+    options.signal?.throwIfAborted()
     clearStoredAdminSession()
     emitAdminSessionExpired()
   }
 
   if (!response.ok) {
     const details = await response.text()
-    throw new Error(details || `Request failed with status ${response.status}`)
+    throw new CatalogApiError(response.status, details)
   }
 
   return (await response.json()) as T
@@ -297,7 +301,7 @@ export function getVocabularyDetail(
   options: RequestInit = {},
 ): Promise<VocabularyDetailResponseDto> {
   return requestJson<VocabularyDetailResponseDto>(
-    `/vocabulary/${id}`,
+    `/vocabulary/${encodeURIComponent(id)}`,
     {
       ...options,
       method: "GET",
