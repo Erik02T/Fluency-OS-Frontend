@@ -1,4 +1,4 @@
-import { DashboardShell } from "@/components/layout"
+import { Toaster } from "@/components/ui/toaster"
 import { AdminAuthProvider } from "@/contexts/admin-auth-context"
 
 export default function DashboardLayout({
@@ -6,5 +6,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <AdminAuthProvider>{children}</AdminAuthProvider>
+  return (
+    <AdminAuthProvider>
+      {children}
+      <Toaster />
+    </AdminAuthProvider>
+  )
 }

@@ -1,0 +1,439 @@
+{
+  "frontendBuild": "vXIPy-xX2r6G_Bpqe39Jz",
+  "apiBuild": "2defe36d7f074b4956dd1be3d490b0988a9b5a18c900d63e11ed9882bdf06697",
+  "frontend": "http://localhost:3306",
+  "api": "http://localhost:3305",
+  "data": "QA descartável",
+  "scenarios": [
+    {
+      "id": "1",
+      "profile": "Visitante",
+      "expected": "Catálogo igual à primeira página da API",
+      "observed": "GET /kanji 200, 24 IDs na ordem da API, total 30, faixa 1–24",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "4",
+      "profile": "Visitante",
+      "expected": "Indicação de login e filtros pessoais indisponíveis",
+      "observed": "Três controles desabilitados e orientação de login, filtros de URL foram omitidos na consulta pública, total 30",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "7",
+      "profile": "Visitante",
+      "expected": "404 com mensagem e retorno amigável",
+      "observed": "404, aviso Kanji indisponível sem JSON, ação leva a /dashboard/kanji",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "5",
+      "profile": "Visitante",
+      "expected": "O item aberto pelo catálogo corresponde ao detalhe direto e recarregado",
+      "observed": "日 · Catálogo QA 0 · 日本, correspondência com API por clique, URL direta e recarga",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "12/14",
+      "profile": "Visitante",
+      "expected": "Tab e Enter abrem o vocábulo correto preservando a separação das ações",
+      "observed": "38 Tabs e Enter abriram /dashboard/vocab/qa-v-0, exibiram significado e nota, sem exemplos no payload e sem gravação",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "19",
+      "profile": "Visitante",
+      "expected": "Gramática acessível por teclado e com explicação, exemplo e nota legíveis em 320 px",
+      "observed": "13 Tabs e Enter para abrir です. Explicação longa, exemplo e nota visíveis. Larguras 320/320 px",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "25",
+      "profile": "Visitante",
+      "expected": "Cinco rotas pessoais com entrada e sem leitura privada",
+      "observed": "Dashboard, Estudo, Revisão, Planner e Imersão abriram com ação Entrar. Nenhuma chamada privada",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "26",
+      "profile": "Visitante",
+      "expected": "Rotas administrativas preservam next",
+      "observed": "As três rotas redirecionaram ao login administrativo com caminho e consulta preservados em next",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "29",
+      "profile": "Visitante",
+      "expected": "Formulários vazios validam antes do envio",
+      "observed": "Login, Registro e Login Administrativo exibiram validação e não enviaram requisições de cadastro ou login",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "33",
+      "profile": "Visitante",
+      "expected": "Analytics sem consulta privada",
+      "observed": "Tela abriu com ação Entrar e não iniciou leitura privada",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "34",
+      "profile": "Visitante",
+      "expected": "Tutor sinaliza demonstração e responde localmente",
+      "observed": "Pergunta visível e resposta de exemplo. Zero chamadas à API após envio",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "35",
+      "profile": "Visitante",
+      "expected": "Botão, atalho, escopo e execução de comando",
+      "observed": "Botão e Ctrl+K abriram a paleta. Placeholder e vazio descrevem páginas e ações. Comando levou à Revisão",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "36",
+      "profile": "Visitante",
+      "expected": "Catálogos e detalhe de Kanji sem extrapolar em 390 e 320 px",
+      "observed": "/kanji 390/390, /vocab 390/390, /grammar 390/390, /kanji/qa-k-0 390/390, /kanji 320/320, /vocab 320/320, /grammar 320/320, /kanji/qa-k-0 320/320",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "38",
+      "profile": "Visitante",
+      "expected": "Vocabulário e Gramática por URL, recarga e retorno",
+      "observed": "Vocabulário e Gramática abriram por URL direta e recarga e retornaram pelo controle Voltar",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "8/39",
+      "profile": "Visitante",
+      "expected": "Áudio ausente, reprodução por teclado e falha do arquivo",
+      "observed": "Sem botão sem URL, WAV 200 com estados reproduzindo/pausado por Enter/Espaço, URL 404 com feedback",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "2",
+      "profile": "Visitante",
+      "expected": "Busca, JLPT e ordenação, com resposta antiga atrasada",
+      "observed": "N5, busca e strokes desc enviados; primeira resposta retida e liberada após a seguinte. IDs e campo conservaram 火",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "3",
+      "profile": "Visitante",
+      "expected": "Página 2, lista/grade sem consulta e limpeza com defaults",
+      "observed": "Página 2 mantém IDs; Espaço alterna para lista sem GET; limpar volta a página 1, frequency asc e filtros ausentes",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "6",
+      "profile": "Visitante",
+      "expected": "Retorno restaura filtros, ordem, página, lista e o card na área visível",
+      "observed": "Após recarga do detalhe e após voltar pelo histórico, os seis parâmetros e IDs foram preservados e o link do card ficou no viewport",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "17",
+      "profile": "Visitante",
+      "expected": "Gramática cruza pesquisa, JLPT, dificuldade e ordem e volta ao default",
+      "observed": "Busca Referência, N5, dificuldade 1, difficulty desc enviados; limpar restabeleceu position asc e removeu filtros",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "18",
+      "profile": "Visitante",
+      "expected": "Duas mensagens vazias, ação limpar e ausência de seed",
+      "observed": "Busca sem correspondência real e limpeza aprovadas. Catálogo sem publicados simulado apresentou mensagem distinta e não citou seed",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "22",
+      "profile": "Visitante",
+      "expected": "503 em página 2, nova tentativa com mesma consulta e carregamento",
+      "observed": "/kanji página 2: 503 simulado → 200 real, parâmetros idênticos, cards exibidos",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "22",
+      "profile": "Visitante",
+      "expected": "503 em página 2, nova tentativa com mesma consulta e carregamento",
+      "observed": "/vocabulary página 2: 503 simulado → 200 real, parâmetros idênticos, cards exibidos",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "22",
+      "profile": "Visitante",
+      "expected": "503 em página 2, nova tentativa com mesma consulta e carregamento",
+      "observed": "/grammar página 2: 503 simulado → 200 real, parâmetros idênticos, cards exibidos",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "11",
+      "profile": "Visitante",
+      "expected": "Vocabulário cruza busca/JLPT e duas ordens, mais página 2",
+      "observed": "Busca Vocabulário × N5. Frequência asc e desc conferidas. Página 2 e total 25 coincidiram com a API",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "13",
+      "profile": "Visitante",
+      "expected": "Tag rotulada como filtro da página e contagem da consulta mantida",
+      "observed": "Tag referência aparece nas duas páginas. 1: 10/20, faixa 1–20; 2: 5/10, faixa 21–30 de 30, com escopo local explícito",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "27/30",
+      "profile": "student",
+      "expected": "Login, recarga, controles e acesso administrativo por perfil",
+      "observed": "Login e renovação 200. Editar/Admin ausentes e rotas redirecionadas",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "28",
+      "profile": "student",
+      "expected": "401 da ação, 401 da renovação real e retorno a Convidado",
+      "observed": "Token da ação invalidado pelo fixture e cookie removido. API real respondeu 401 e 401. Convidado e catálogo continuam acessíveis",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "27/30",
+      "profile": "teacher",
+      "expected": "Login, recarga, controles e acesso administrativo por perfil",
+      "observed": "Login e renovação 200. Editar/Admin ausentes e rotas redirecionadas",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "27/30",
+      "profile": "admin",
+      "expected": "Login, recarga, controles e acesso administrativo por perfil",
+      "observed": "Login e renovação 200. Editar/Admin visíveis e rotas liberadas",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "9",
+      "profile": "Student",
+      "expected": "Estudar envia study uma vez, aparece na biblioteca e persiste",
+      "observed": "POST study 200, botão bloqueado durante a resposta, 1 gravação, progresso no detalhe após F5 e na Biblioteca",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "20",
+      "profile": "Student",
+      "expected": "Estudo de Gramática confirmado após recarga",
+      "observed": "POST study 200 e isStudied=true, aviso de sucesso e estado Estudado após recarga",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "21",
+      "profile": "Student",
+      "expected": "Escolha explícita, erro com nova tentativa, confiança e revisões persistidas",
+      "observed": "Seleção 4 → {action:review,understood:true,confidenceLevel:4}. 400 e 503 simulados conservaram 4 e permitiram repetir. API real 200, aviso e mais uma revisão persistida após F5",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "10/15",
+      "profile": "Student",
+      "expected": "Atalhos do card e detalhe abrem a fila com ação explícita",
+      "observed": "Card e detalhe de Kanji e Vocabulário abrem a fila geral com Fila de revisão; nenhuma avaliação/alteração de progresso só com a navegação. Gravação após resposta no 23",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "16",
+      "profile": "Student",
+      "expected": "Sem progresso é distinto de SRS/confiança zero e erro de leitura",
+      "observed": "Três detalhes diferenciam ausência, nível/confiança 0 e 503 simulado; níveis conferidos na API",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "23/24",
+      "profile": "Student",
+      "expected": "Uma avaliação por card, F5 retoma, stats recupera sem duplicação, contador zera",
+      "observed": "Barra 3→2→1→0 sem recarregar para aplicar cada resposta; clique repetido desabilitado, F5 no segundo card, stats 503 simulado recuperado sem novo /answer; abandono manteve o item na fila e último card levou contador real a zero",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "24",
+      "profile": "Student → outro Student",
+      "expected": "Logout limpa o contador e login mostra conta independente",
+      "observed": "Logout 200, visitante sem contador e novo estudante com 1 card(s) segundo /review/queue/count",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "37",
+      "profile": "Visitante",
+      "expected": "Nomes, estado e idioma dos controles da aplicação",
+      "observed": "JLPT, Dominados, Favoritos, Suspensos, Ordenar por, Ordem e Busca têm nome. Grade/Lista expõem aria-pressed e respondem a Espaço. Busca global, Revisar e notificações têm nome. HTML pt-BR e termos ja",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "43",
+      "profile": "Student",
+      "expected": "Nível 5 e 2 no catálogo, biblioteca e API",
+      "observed": "100% (5/5) e 40% (2/5) do indicador, valores ARIA e respostas da API coincidem no catálogo e na Biblioteca",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "22 · carregamento",
+      "profile": "Student",
+      "expected": "Próxima tentativa mostra carregamento e mantém os filtros do catálogo",
+      "observed": "Nos três catálogos, 503 simulado na página 1, nova tentativa manteve N5, aria-busy true durante espera e false após 200 e lista",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "37",
+      "profile": "Visitante",
+      "expected": "Nomes, estado e idioma dos controles da aplicação",
+      "observed": "JLPT, Dominados, Favoritos, Suspensos, Ordenar por, Ordem e Busca têm nome. Grade/Lista expõem aria-pressed e respondem a Espaço. Busca global, Revisar e notificações têm nome. HTML pt-BR e termos ja",
+      "status": "pass",
+      "browser": "firefox",
+      "browserVersion": "159.0"
+    },
+    {
+      "id": "27",
+      "profile": "Visitante",
+      "expected": "Ocultar controles Editar e Admin no detalhe de Kanji",
+      "observed": "Detalhe abriu com conteúdo público, sem Editar ou Admin",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "41 · metas Planner",
+      "profile": "Admin",
+      "expected": "Salvar meta e omitir as unidades vazias",
+      "observed": "PUT /planner/weeks/cmwtyqhlr001fudm420ljdoqy/goals 200, unit omitida em Kanji/Gramática, min preservado em Imersão, alvo 51 confirmado",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "41 · metas Imersão",
+      "profile": "Admin",
+      "expected": "Salvar meta de Imersão e omitir as unidades vazias de outras categorias",
+      "observed": "PUT /planner/weeks/cmwtyqhlr001fudm420ljdoqy/goals 200, unit omitida em Kanji/Gramática, min preservado em Imersão, alvo 301 confirmado",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "41 · telas",
+      "profile": "Admin",
+      "expected": "Dashboard e Analytics leem a conta autenticada",
+      "observed": "GET /dashboard/summary e /analytics/overview 200 no Edge",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "16 · cards",
+      "profile": "Visitante e Student",
+      "expected": "Diferenciar convidado, ausência, nível zero e 503 no catálogo",
+      "observed": "Nos três catálogos, visitante recebeu indicação de login, Student viu ausência e valor zero distintos, e 503 simulado exibiu Tentar novamente sem cards",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "12 · estado vazio",
+      "profile": "Visitante",
+      "expected": "Mostrar nota, significado e aviso de exemplos ausentes no detalhe de Vocabulário",
+      "observed": "O detalhe sem exemplos mostrou a mensagem esperada além da nota e do significado do item",
+      "status": "pass",
+      "browser": "msedge",
+      "browserVersion": "158.0.4370.33"
+    },
+    {
+      "id": "42 · motor Gecko",
+      "profile": "Visitante",
+      "expected": "Segundo motor com teclado, detalhe e largura responsiva",
+      "observed": "Firefox 159.0, /kanji 9 Tabs e Enter após Busca, /vocab 6 Tabs e Enter após Busca, /grammar 6 Tabs e Enter após Busca; Vocabulário mediu 320/320 e 390/390 CSS px",
+      "status": "pass",
+      "browser": "firefox",
+      "browserVersion": "159.0"
+    }
+  ],
+  "pending": [
+    {
+      "id": "42",
+      "check": "Narrador do Windows",
+      "observed": "Computer Use native pipe is unavailable. O sistema não pode encontrar o arquivo especificado (os error 2)."
+    }
+  ]
+}

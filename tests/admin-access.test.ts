@@ -48,14 +48,13 @@ describe("admin navigation visibility", () => {
 })
 
 describe("admin route helpers", () => {
-  const previousJwt = process.env.JWT_SECRET
-
   beforeEach(() => {
-    process.env.JWT_SECRET = "test-jwt-secret"
+    vi.stubEnv("JWT_SECRET", "outside-qa-secret")
+    vi.stubEnv("AUTH_ROLE_COOKIE_SECRET", "test-jwt-secret")
   })
 
-  afterAll(() => {
-    process.env.JWT_SECRET = previousJwt
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   it("detects admin app routes", () => {

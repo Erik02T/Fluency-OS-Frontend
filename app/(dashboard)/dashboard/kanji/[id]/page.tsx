@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import { motion } from "framer-motion"
 import {
   ArrowLeft,
@@ -13,17 +13,23 @@ import {
   Shield,
   Sparkles,
   Star,
-  Volume2,
 } from "lucide-react"
 import { DashboardShell } from "@/components/layout"
+import { CatalogAudio } from "@/components/catalog/catalog-audio"
+import { catalogDetailColumns, catalogSurface } from "@/components/catalog/catalog-presentation"
+import { ContentStudyActions } from "@/components/content-study-actions"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { toast } from "@/components/ui/use-toast"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
+import { cn } from "@/lib/utils"
+import { invalidateReviewQueue } from "@/store"
 import {
   getKanjiDetail,
   studyKanji,
-  sendKanjiToReview,
+  KanjiApiError,
   type KanjiDetailResponseDto,
 } from "@/lib/kanji-api"
 
@@ -37,7 +43,7 @@ function getErrorMessage(error: unknown): string {
 
 function LoadingState() {
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
+    <div className={catalogDetailColumns}>
       <Card className="bg-card/60 border-border/50">
         <CardContent className="p-6 animate-pulse space-y-4">
           <div className="h-4 w-24 rounded bg-muted/50" />
@@ -59,18 +65,29 @@ function LoadingState() {
 }
 
 export default function KanjiDetailPage() {
-  const router = useRouter()
   const params = useParams<{ id: string }>()
-  const id = params?.id
+  const { user, isInitializing } = useAdminAuth()
+  return (
+    <KanjiDetail key={JSON.stringify([params?.id, user?.id])} id={params?.id} isInitializing={isInitializing} />
+  )
+}
+
+function KanjiDetail({ id, isInitializing }: { id?: string; isInitializing: boolean }) {
+  const router = useRouter()
+  const params = useSearchParams()
+  const returnQuery = new URLSearchParams(params.get("from") ?? "").toString()
+  const catalogHref = returnQuery ? `/dashboard/kanji?${returnQuery}` : "/dashboard/kanji"
+  const { isAdmin, isAuthenticated } = useAdminAuth()
   const [kanji, setKanji] = React.useState<KanjiDetailResponseDto | null>(null)
   const [isLoading, setIsLoading] = React.useState(true)
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
+  const [isMissing, setIsMissing] = React.useState(false)
+  const [requestVersion, reloadDetail] = React.useReducer((version: number) => version + 1, 0)
   const [isStudying, setIsStudying] = React.useState(false)
-  const [isReviewing, setIsReviewing] = React.useState(false)
-  const [actionFeedback, setActionFeedback] = React.useState<string | null>(null)
   const [actionError, setActionError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
+    if (isInitializing) return
     if (!id) {
       setErrorMessage("Identificador do kanji ausente na rota.")
       setIsLoading(false)
@@ -80,19 +97,25 @@ export default function KanjiDetailPage() {
     const controller = new AbortController()
     let isActive = true
 
-    async function loadDetail() {
+    async function loadDetail(kanjiId: string) {
       try {
         setIsLoading(true)
         setErrorMessage(null)
+        setIsMissing(false)
 
-        const payload = await getKanjiDetail(id, { signal: controller.signal })
+        const payload = await getKanjiDetail(kanjiId, { signal: controller.signal })
         if (isActive) {
           setKanji(payload)
+          setIsMissing(!payload)
         }
       } catch (error) {
         if (isActive && !controller.signal.aborted) {
           setKanji(null)
-          setErrorMessage(getErrorMessage(error))
+          if (error instanceof KanjiApiError && error.status === 404) {
+            setIsMissing(true)
+          } else {
+            setErrorMessage(getErrorMessage(error))
+          }
         }
       } finally {
         if (isActive) {
@@ -101,22 +124,22 @@ export default function KanjiDetailPage() {
       }
     }
 
-    loadDetail()
+    void loadDetail(id)
 
     return () => {
       isActive = false
       controller.abort()
     }
-  }, [id])
+  }, [id, isInitializing, requestVersion])
 
   async function handleStudy() {
     if (!kanji || isStudying) return
     setIsStudying(true)
     setActionError(null)
-    setActionFeedback(null)
     try {
       await studyKanji(kanji.id)
-      setActionFeedback("Kanji adicionado ao estudo")
+      invalidateReviewQueue()
+      toast({ title: "Kanji marcado como estudado" })
       router.push("/dashboard/study")
     } catch (err) {
       setActionError(getErrorMessage(err))
@@ -125,37 +148,21 @@ export default function KanjiDetailPage() {
     }
   }
 
-  async function handleReview() {
-    if (!kanji || isReviewing) return
-    setIsReviewing(true)
-    setActionError(null)
-    setActionFeedback(null)
-    try {
-      await sendKanjiToReview(kanji.id)
-      setActionFeedback("Kanji enviado para review")
-      router.push("/dashboard/review")
-    } catch (err) {
-      setActionError(getErrorMessage(err))
-    } finally {
-      setIsReviewing(false)
-    }
-  }
-
   return (
     <DashboardShell
       title="Detalhe do Kanji"
-      subtitle="Dados completos carregados do backend"
+      subtitle="Leituras, significados e exemplos"
       kanji={kanji?.character ?? "字"}
     >
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" asChild>
-            <Link href="/dashboard/kanji">
+            <Link href={catalogHref} scroll={!returnQuery}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Link>
           </Button>
-          {kanji && (
+          {!isInitializing && isAdmin && kanji && (
             <Button variant="outline" asChild>
               <Link href={`/dashboard/kanji/admin?id=${kanji.id}`}>
                 <Edit3 className="h-4 w-4 mr-2" />
@@ -163,48 +170,38 @@ export default function KanjiDetailPage() {
               </Link>
             </Button>
           )}
-          <Button variant="outline" asChild>
-            <Link href="/dashboard/kanji/admin">
-              <Shield className="h-4 w-4 mr-2" />
-              Admin
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            <RefreshCcw className="h-4 w-4 mr-2" />
-            Recarregar
-          </Button>
+          {!isInitializing && isAdmin && (
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/kanji/admin">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </Link>
+            </Button>
+          )}
+          {!isMissing && (
+            <Button variant="outline" onClick={reloadDetail}>
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Recarregar
+            </Button>
+          )}
           {kanji && (
-            <>
-              <Button
-                variant="outline"
-                disabled={isStudying || isReviewing}
-                onClick={handleStudy}
-              >
-                {isStudying ? "..." : "Estudar"}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={isStudying || isReviewing}
-                onClick={handleReview}
-              >
-                {isReviewing ? "..." : "Enviar para Review"}
-              </Button>
-            </>
+            <ContentStudyActions itemType="kanji" itemId={kanji.id} isStudying={isStudying} onStudy={() => void handleStudy()} />
           )}
         </div>
 
-        {actionFeedback && (
-          <Card className="border-emerald-500/30 bg-emerald-500/5">
-            <CardContent className="p-4 text-sm text-emerald-500">
-              {actionFeedback}
+        {actionError && (
+          <Card className="border-destructive/30 bg-destructive/5">
+            <CardContent role="alert" className="p-4 text-sm text-destructive">
+              {actionError}
             </CardContent>
           </Card>
         )}
 
-        {actionError && (
-          <Card className="border-destructive/30 bg-destructive/5">
-            <CardContent className="p-4 text-sm text-destructive">
-              {actionError}
+        {isMissing && (
+          <Card className="border-border/50 bg-card/60">
+            <CardContent role="status" className="p-5 space-y-1">
+              <p className="font-medium">Kanji indisponível</p>
+              <p className="text-sm text-muted-foreground">Volte ao catálogo para procurar outro kanji.</p>
             </CardContent>
           </Card>
         )}
@@ -216,7 +213,7 @@ export default function KanjiDetailPage() {
                 <p className="font-medium text-destructive">Não foi possível carregar o detalhe</p>
                 <p className="text-sm text-muted-foreground">{errorMessage}</p>
               </div>
-              <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
+              <Button onClick={reloadDetail}>Tentar novamente</Button>
             </CardContent>
           </Card>
         )}
@@ -224,16 +221,13 @@ export default function KanjiDetailPage() {
         {isLoading ? (
           <LoadingState />
         ) : kanji ? (
-          <div className="grid gap-4 xl:grid-cols-[1.3fr_1fr]">
-            <Card className="bg-card/60 backdrop-blur border-border/50 overflow-hidden">
+          <div className={catalogDetailColumns}>
+            <Card className={catalogSurface}>
               <CardContent className="p-6 space-y-6">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{kanji.unicodeCodepoint}</p>
-                    <h1 className="text-3xl font-semibold text-foreground mt-2">{kanji.character}</h1>
-                    <p className="text-sm text-muted-foreground mt-2 max-w-2xl">
-                      Dados carregados via GET /kanji/:id com relacionamentos completos.
-                    </p>
+                    <h2 lang="ja" className="mt-2 font-japanese text-3xl font-semibold text-foreground">{kanji.character}</h2>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Badge>{kanji.jlpt}</Badge>
@@ -252,7 +246,7 @@ export default function KanjiDetailPage() {
                   <InfoBlock title="Significados" icon={<Sparkles className="h-4 w-4" />}>
                     <div className="flex flex-wrap gap-2">
                       {kanji.meanings.map((meaning) => (
-                        <Badge key={`${meaning.meaning}-${meaning.language}`} variant="outline">
+                        <Badge key={`${meaning.meaning}-${meaning.language}`} lang={meaning.language || undefined} variant="outline" className="whitespace-normal [overflow-wrap:anywhere]">
                           {meaning.meaning}
                         </Badge>
                       ))}
@@ -268,16 +262,16 @@ export default function KanjiDetailPage() {
                             {kanji.userProgress.srsLevel}/5
                           </span>
                         </div>
-                        <Progress value={kanji.userProgress.srsLevel * 20} className="h-2" />
+                        <Progress aria-label="Nível SRS" value={kanji.userProgress.srsLevel} max={5} className="h-2" />
                         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                          <span>Mastered: {kanji.userProgress.isMastered ? "sim" : "não"}</span>
+                          <span>Dominado: {kanji.userProgress.isMastered ? "sim" : "não"}</span>
                           <span>Favorito: {kanji.userProgress.isFavorited ? "sim" : "não"}</span>
                           <span>Suspenso: {kanji.userProgress.isSuspended ? "sim" : "não"}</span>
                         </div>
                       </div>
                     ) : (
                       <p className="text-sm text-muted-foreground">
-                        Nenhum progresso disponível para o usuário autenticado.
+                        {isAuthenticated ? "Sem progresso registrado" : "Entre para ver seu progresso"}
                       </p>
                     )}
                   </InfoBlock>
@@ -305,7 +299,7 @@ export default function KanjiDetailPage() {
             </Card>
 
             <div className="space-y-4">
-              <Card className="bg-card/60 backdrop-blur border-border/50">
+              <Card className={cn(catalogSurface, "py-5")}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Exemplos</CardTitle>
                 </CardHeader>
@@ -316,18 +310,11 @@ export default function KanjiDetailPage() {
                         key={`${example.word}-${example.reading}`}
                         className="rounded-2xl border border-border/50 bg-secondary/20 p-4 space-y-2"
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <span className="font-japanese text-2xl text-foreground">{example.word}</span>
-                          <Button variant="ghost" size="icon" className="shrink-0" aria-label="Reproduzir áudio">
-                            <Volume2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <p className="text-sm font-mono text-muted-foreground">{example.reading}</p>
+                        <p lang="ja" className="font-japanese text-2xl text-foreground [overflow-wrap:anywhere]">{example.word}</p>
+                        <p lang="ja" className="font-japanese text-sm text-muted-foreground [overflow-wrap:anywhere]">{example.reading}</p>
                         <p className="text-sm text-foreground">{example.meaning}</p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Badge variant="outline">{example.jlpt}</Badge>
-                          {example.audioUrl && <span>Áudio disponível</span>}
-                        </div>
+                        <Badge variant="outline">{example.jlpt}</Badge>
+                        <CatalogAudio src={example.audioUrl} subject={example.word} />
                       </div>
                     ))
                   ) : (
@@ -336,7 +323,7 @@ export default function KanjiDetailPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-card/60 backdrop-blur border-border/50">
+              <Card className={cn(catalogSurface, "py-5")}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Radicais</CardTitle>
                 </CardHeader>
@@ -350,11 +337,11 @@ export default function KanjiDetailPage() {
                         >
                           <div className="flex items-center justify-between gap-3">
                             <div className="flex items-center gap-3">
-                              <div className="h-11 w-11 rounded-xl bg-background flex items-center justify-center">
-                                <span className="font-japanese text-xl text-[var(--gold)]">{radical.character}</span>
+                              <div className="h-11 w-11 shrink-0 rounded-xl bg-background flex items-center justify-center">
+                                <span lang="ja" className="font-japanese text-xl text-[var(--gold)]">{radical.character}</span>
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-foreground">{radical.name}</p>
+                                <p className="text-sm font-medium text-foreground [overflow-wrap:anywhere]">{radical.name}</p>
                                 <p className="text-xs text-muted-foreground">{radical.meaning}</p>
                               </div>
                             </div>
@@ -404,7 +391,7 @@ function HeroStat({
   return (
     <div className="rounded-2xl border border-border/50 bg-secondary/20 p-4 flex items-center gap-3">
       <div className="h-11 w-11 rounded-xl bg-background flex items-center justify-center">
-        <span className="font-japanese text-lg text-[var(--torii-red)]">{icon}</span>
+        <span lang="ja" aria-hidden="true" className="font-japanese text-lg text-[var(--torii-red)]">{icon}</span>
       </div>
       <div>
         <p className="text-2xl font-semibold text-foreground">{value}</p>
@@ -444,7 +431,7 @@ function ReadingLine({
   return (
     <div>
       <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-      <p className="text-sm text-foreground mt-1">
+      <p lang="ja" className="mt-1 font-japanese text-sm text-foreground [overflow-wrap:anywhere]">
         {readings && readings.length > 0
           ? readings.map((reading) => reading.reading).join("、")
           : "—"}

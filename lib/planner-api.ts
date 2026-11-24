@@ -155,6 +155,7 @@ export interface PlannerHabitDto {
 
 export interface PlannerWeekDayDto {
   date: number
+  isoDate: string
   day: string
   isToday: boolean
 }
@@ -180,6 +181,8 @@ export interface PlannerSummaryDto {
 }
 
 export interface PlannerOverviewResponseDto {
+  todayDate: string
+  selectedDate: string
   week: PlannerWeekDayDto[]
   habits: PlannerHabitDto[]
   todayTasks: PlannerTaskDto[]
@@ -293,12 +296,17 @@ export function updateWeeklyGoals(
   options: RequestInit = {},
 ): Promise<WeeklyPlanResponseDto> {
   console.debug("[planner-api] Updating weekly goals", { planId, goals })
+  const payload = goals.map(({ category, targetValue, unit }) => ({
+    category,
+    targetValue,
+    unit: unit?.trim() ? unit : undefined,
+  }))
   return requestJson<WeeklyPlanResponseDto>(
     `/planner/weeks/${planId}/goals`,
     {
       ...options,
       method: "PUT",
-      body: JSON.stringify({ goals }),
+      body: JSON.stringify({ goals: payload }),
     },
     true,
   )

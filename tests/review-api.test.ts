@@ -7,6 +7,9 @@ import {
 import {
   getReviewQueue,
   getReviewQueueCount,
+  enqueueReviewItem,
+  getReviewErrorMessage,
+  ReviewApiError,
   createReviewSession,
   getReviewSession,
   submitReviewAnswer,
@@ -112,6 +115,34 @@ describe("review-api auth retry", () => {
       expect.stringContaining("/review/sessions"),
       expect.objectContaining({ method: "POST" }),
     )
+  })
+
+  it("adds the selected item to the queue without submitting an answer", async () => {
+    updateStoredAccessToken("token-1")
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 204 }))
+
+    await enqueueReviewItem("vocabulary", "vocab_123")
+
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringMatching(/\/review\/queue$/), expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ item_type: "vocabulary", item_id: "vocab_123" }),
+    }))
+  })
+
+  it("distinguishes a temporary rate limit from an unavailable review session", async () => {
+    updateStoredAccessToken("token-1")
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": "12" },
+    }))
+
+    const result = getReviewHistory({ status: "in_progress" })
+    await expect(result).rejects.toMatchObject({ status: 429, retryAfter: 12 })
+    const error = await result.catch((caught: unknown) => caught)
+    expect(error).toBeInstanceOf(ReviewApiError)
+    expect(getReviewErrorMessage(error, "Sessão indisponível")).toBe("Muitas requisições. Tente novamente em 12 s.")
+    expect(loadStoredAccessToken()).toBe("token-1")
   })
 
   it("submits an answer via POST /review/sessions/:id/answer", async () => {

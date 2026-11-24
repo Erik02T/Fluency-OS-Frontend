@@ -1,25 +1,19 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   BarChart3,
   TrendingUp,
-  Calendar,
   Clock,
   Target,
-  Flame,
-  BookOpen,
-  Languages,
   Headphones,
-  Brain,
   Star,
-  ChevronDown,
   ArrowUp,
   ArrowDown,
   Minus,
   AlertCircle,
-  Loader2,
 } from "lucide-react"
 import {
   LineChart,
@@ -53,16 +47,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DashboardShell } from "@/components/layout"
-import { toast } from "@/components/ui/use-toast"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
 import { cn } from "@/lib/utils"
 import {
   AnalyticsOverviewResponseDto,
   AnalyticsPeriod,
   getAnalyticsOverview,
-  type AnalyticsGranularity,
   type ImmersionBreakdownPointDto,
   type StudySeriesPointDto,
 } from "@/lib/analytics-api"
@@ -372,6 +365,26 @@ function transformImmersionBreakdown(
 }
 
 export default function AnalyticsPage() {
+  const { user, isAuthenticated, isInitializing } = useAdminAuth()
+  return (
+    <DashboardShell title="Analytics" subtitle="Acompanhe seu progresso detalhado" kanji="析">
+      {isInitializing ? (
+        <p role="status" className="text-sm text-muted-foreground">Restaurando sua sessão…</p>
+      ) : user && isAuthenticated ? (
+        <AnalyticsContent key={user.id} />
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm text-muted-foreground">Entre para consultar suas análises.</p>
+          <Button asChild>
+            <Link href="/dashboard/login">Entrar</Link>
+          </Button>
+        </div>
+      )}
+    </DashboardShell>
+  )
+}
+
+function AnalyticsContent() {
   const [timeRange, setTimeRange] = React.useState<AnalyticsPeriod>("30d")
   const [domainFilter, setDomainFilter] = React.useState<string>("all")
 
@@ -379,60 +392,27 @@ export default function AnalyticsPage() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
   const [overviewData, setOverviewData] =
     React.useState<AnalyticsOverviewResponseDto | null>(null)
-
-  const fetchOverview = React.useCallback(async () => {
-    const controller = new AbortController()
-    let isActive = true
-
-    try {
-      setIsLoading(true)
-      setErrorMessage(null)
-
-      const data = await getAnalyticsOverview(
-        { period: timeRange, granularity: "day" },
-        { signal: controller.signal },
-      )
-
-      if (isActive) {
-        console.debug("[analytics-page] Overview loaded:", {
-          points: data.studyTimeSeries.length,
-          immersionTypes: data.immersionBreakdown.length,
-        })
-        setOverviewData(data)
-      }
-    } catch (error) {
-      if (
-        isActive &&
-        !(error instanceof DOMException && error.name === "AbortError")
-      ) {
-        const message = parseApiMessage(getErrorMessage(error))
-        console.error("[analytics-page] Failed to fetch analytics:", {
-          error,
-          message,
-        })
-        setErrorMessage(message)
-        toast({
-          title: "Erro ao carregar análises",
-          description:
-            "Não foi possível carregar os dados analíticos. Tente novamente.",
-          variant: "destructive",
-        })
-      }
-    } finally {
-      if (isActive) {
-        setIsLoading(false)
-      }
-    }
-
-    return () => {
-      isActive = false
-      controller.abort()
-    }
-  }, [timeRange])
+  const [requestVersion, reloadOverview] = React.useReducer((version: number) => version + 1, 0)
 
   React.useEffect(() => {
-    void fetchOverview()
-  }, [fetchOverview])
+    const controller = new AbortController()
+    const { signal } = controller
+    async function loadOverview() {
+      setIsLoading(true)
+      setErrorMessage(null)
+      setOverviewData(null)
+      try {
+        const data = await getAnalyticsOverview({ period: timeRange, granularity: "day" }, { signal })
+        if (!signal.aborted) setOverviewData(data)
+      } catch (error) {
+        if (!signal.aborted) setErrorMessage(parseApiMessage(getErrorMessage(error)))
+      } finally {
+        if (!signal.aborted) setIsLoading(false)
+      }
+    }
+    void loadOverview()
+    return () => controller.abort()
+  }, [requestVersion, timeRange])
 
   const statsOverview = overviewData
     ? buildStatsOverview(overviewData.summary)
@@ -447,11 +427,6 @@ export default function AnalyticsPage() {
     : []
 
   return (
-    <DashboardShell
-      title="Analytics"
-      subtitle="Acompanhe seu progresso detalhado"
-      kanji="析"
-    >
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -468,7 +443,7 @@ export default function AnalyticsPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => void fetchOverview()}
+                  onClick={reloadOverview}
                 >
                   Tentar novamente
                 </Button>
@@ -1029,6 +1004,5 @@ export default function AnalyticsPage() {
           </Card>
         </motion.div>
       </motion.div>
-    </DashboardShell>
   )
 }

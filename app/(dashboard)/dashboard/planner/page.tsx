@@ -16,6 +16,7 @@ import {
   RefreshCw,
   AlertCircle,
   Loader2,
+  Pencil,
   Trash2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +26,10 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { DashboardShell } from "@/components/layout"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { toast } from "@/components/ui/use-toast"
 import { cn } from "@/lib/utils"
 import {
@@ -32,6 +37,7 @@ import {
   getPlannerOverview,
   getWeeklyPlan,
   togglePlannerTaskCompletion,
+  updatePlannerTask,
   type PlannerHabitDto,
   type PlannerOverviewResponseDto,
   type PlannerTaskDto,
@@ -255,6 +261,18 @@ function LoadingSummaryCards() {
 }
 
 export default function PlannerPage() {
+  const { user, isInitializing } = useAdminAuth()
+  if (!user || isInitializing) {
+    return <DashboardShell title="Planner" kanji="計">
+      <p role="status" className="text-sm text-muted-foreground">
+        {isInitializing ? "Restaurando sua sessão..." : "Entre para consultar seu planejamento."}
+      </p>
+    </DashboardShell>
+  }
+  return <PlannerContent key={user.id} />
+}
+
+function PlannerContent() {
   const [isLoading, setIsLoading] = React.useState(true)
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null)
   const [isAddTaskOpen, setIsAddTaskOpen] = React.useState(false)
@@ -267,60 +285,45 @@ export default function PlannerPage() {
   const [completedTaskIds, setCompletedTaskIds] = React.useState<
     Record<string, boolean>
   >({})
-  const [selectedDay, setSelectedDay] = React.useState<number>(3)
-  const [weekOffset, setWeekOffset] = React.useState<number>(0)
+  const [targetDate, setTargetDate] = React.useState<string>()
+  const [editTask, setEditTask] = React.useState<{
+    id: string
+    title: string
+    date: string
+    duration: string
+  } | null>(null)
+  const [editError, setEditError] = React.useState<string | null>(null)
+  const [isSavingTask, setIsSavingTask] = React.useState(false)
+  const overviewRequest = React.useRef(0)
+  const planRequest = React.useRef(0)
 
   const todayTasks: PlannerTaskDto[] = React.useMemo(() => overview?.todayTasks ?? [], [overview?.todayTasks])
   const habits: PlannerHabitDto[] = overview?.habits ?? []
   const weeklyGoals: PlannerWeeklyGoalDto[] = overview?.weeklyGoals ?? []
   const weekDays = overview?.week ?? []
 
-  const monthLabel = React.useMemo(() => {
-    const now = new Date()
-    const targetDate = new Date(now)
-    targetDate.setDate(now.getDate() + (weekOffset * 7))
-    const monthNames = [
-      "Janeiro",
-      "Fevereiro",
-      "Março",
-      "Abril",
-      "Maio",
-      "Junho",
-      "Julho",
-      "Agosto",
-      "Setembro",
-      "Outubro",
-      "Novembro",
-      "Dezembro",
-    ]
-    return `${monthNames[targetDate.getMonth()]} ${targetDate.getFullYear()}`
-  }, [weekOffset])
-
-  const weekNumber = React.useMemo(() => {
-    const now = new Date()
-    const targetDate = new Date(now)
-    targetDate.setDate(now.getDate() + (weekOffset * 7))
-    const start = new Date(targetDate.getFullYear(), 0, 1)
-    const diff = targetDate.getTime() - start.getTime()
-    const oneWeek = 7 * 24 * 60 * 60 * 1000
-    return Math.max(1, Math.ceil(diff / oneWeek))
-  }, [weekOffset])
-
-  const targetDate = React.useMemo(() => {
-    const now = new Date()
-    const target = new Date(now)
-    target.setDate(now.getDate() + (weekOffset * 7))
-    return target.toISOString().split("T")[0]
-  }, [weekOffset])
+  const selectedDate = overview?.selectedDate
+  const selectedDay = weekDays.findIndex((day) => day.isoDate === selectedDate)
+  const monthLabel = selectedDate
+    ? new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(selectedDate))
+    : ""
+  const shiftWeek = (days: number) => {
+    if (!selectedDate) return
+    const shifted = new Date(selectedDate)
+    shifted.setUTCDate(shifted.getUTCDate() + days)
+    const date = shifted.toISOString().slice(0, 10)
+    setTargetDate(date === overview?.todayDate ? undefined : date)
+  }
 
   const tasksCompletedToday = React.useMemo(() => {
     if (!overview) return 0
-    return todayTasks.filter((t) => completedTaskIds[t.id] || t.completed).length
+    return todayTasks.filter((t) => completedTaskIds[t.id] ?? t.completed).length
   }, [todayTasks, overview, completedTaskIds])
 
   const tasksTotalToday = todayTasks.length
 
   const fetchOverview = React.useCallback(async (targetDate?: string, skipLoading = false) => {
+    const request = ++overviewRequest.current
     try {
       if (!skipLoading) {
         setIsLoading(true)
@@ -328,6 +331,7 @@ export default function PlannerPage() {
       setErrorMessage(null)
 
       const payload = await getPlannerOverview(targetDate)
+      if (request !== overviewRequest.current) return
       setOverview(payload)
 
       // Initialize completedTaskIds from server response
@@ -339,11 +343,8 @@ export default function PlannerPage() {
       }
       setCompletedTaskIds(initialCompleted)
 
-      const todayIndex = payload.week.findIndex((d) => d.isToday)
-      if (todayIndex >= 0) {
-        setSelectedDay(todayIndex)
-      }
     } catch (error) {
+      if (request !== overviewRequest.current) return
       const message = parseApiMessage(getErrorMessage(error))
       console.error("[planner-page] Failed to load planner:", {
         error,
@@ -357,16 +358,17 @@ export default function PlannerPage() {
         variant: "destructive",
       })
     } finally {
-      if (!skipLoading) {
+      if (request === overviewRequest.current) {
         setIsLoading(false)
       }
     }
   }, [])
 
   const fetchWeeklyPlan = React.useCallback(async (targetDate?: string) => {
+    const request = ++planRequest.current
     try {
       const plan = await getWeeklyPlan({ date: targetDate })
-      setWeeklyPlan(plan)
+      if (request === planRequest.current) setWeeklyPlan(plan)
     } catch (error) {
       console.error("[planner-page] Failed to load weekly plan:", error)
     }
@@ -376,6 +378,40 @@ export default function PlannerPage() {
     void fetchOverview(targetDate)
     void fetchWeeklyPlan(targetDate)
   }, [fetchOverview, fetchWeeklyPlan, targetDate])
+
+  const refreshTasks = () => {
+    void fetchOverview(targetDate, true)
+    void fetchWeeklyPlan(targetDate)
+  }
+
+  const openTaskEditor = (task: PlannerTaskDto) => {
+    if (!selectedDate) return
+    setEditError(null)
+    setEditTask({ id: task.id, title: task.task, date: selectedDate, duration: String(task.estimatedMinutes) })
+  }
+
+  const saveTask = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!editTask || isSavingTask) return
+    const title = editTask.title.trim()
+    const estimatedMinutes = Number(editTask.duration)
+    if (!title || !editTask.date || !Number.isInteger(estimatedMinutes) || estimatedMinutes < 1 || estimatedMinutes > 720) {
+      setEditError("Informe um título, uma data válida e uma duração entre 1 e 720 minutos.")
+      return
+    }
+    setIsSavingTask(true)
+    setEditError(null)
+    try {
+      await updatePlannerTask(editTask.id, { title, date: editTask.date, estimatedMinutes })
+      setEditTask(null)
+      refreshTasks()
+      toast({ title: "Tarefa atualizada" })
+    } catch (error) {
+      setEditError(parseApiMessage(getErrorMessage(error)) || "Não foi possível salvar a tarefa.")
+    } finally {
+      setIsSavingTask(false)
+    }
+  }
 
   const toggleTask = async (taskId: string) => {
     const isCurrentlyDone = !!completedTaskIds[taskId]
@@ -388,12 +424,7 @@ export default function PlannerPage() {
     if (!taskId.startsWith("task-")) {
       try {
         await togglePlannerTaskCompletion(taskId, { completed: nextDone })
-        // Sincronizar em background apenas se for hoje (para manter Resumo de Hoje atualizado)
-        const today = new Date().toISOString().split("T")[0]
-        if (targetDate === today) {
-          void fetchOverview(targetDate, true) // skip loading to avoid flash
-        }
-        void fetchWeeklyPlan(targetDate)
+        refreshTasks()
       } catch (error) {
         console.error("[planner-page] Failed to toggle task:", error)
         // Rollback
@@ -430,8 +461,7 @@ export default function PlannerPage() {
         title: "Tarefa removida",
         description: "A tarefa foi excluída com sucesso.",
       })
-      void fetchOverview(targetDate, true) // skip loading to avoid flash
-      void fetchWeeklyPlan(targetDate)
+      refreshTasks()
     } catch (error) {
       console.error("[planner-page] Failed to delete task:", error)
       toast({
@@ -444,9 +474,7 @@ export default function PlannerPage() {
 
   const handleGoalsUpdated = (plan: WeeklyPlanResponseDto) => {
     setWeeklyPlan(plan)
-    // Sempre atualizar o overview com a data atual para manter o Resumo de Hoje correto
-    const today = new Date().toISOString().split("T")[0]
-    void fetchOverview(today, true) // skip loading to avoid flash
+    void fetchOverview(targetDate, true)
   }
 
   const currentGoals: WeeklyGoalItemDto[] = weeklyPlan?.goals.map((g) => ({
@@ -477,7 +505,7 @@ export default function PlannerPage() {
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => void fetchOverview(undefined, true)}
+                  onClick={refreshTasks}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Tentar novamente
@@ -497,7 +525,8 @@ export default function PlannerPage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setWeekOffset((prev) => prev - 1)}
+                    onClick={() => shiftWeek(-7)}
+                    aria-label="Semana anterior"
                     disabled={isLoading}
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -507,30 +536,31 @@ export default function PlannerPage() {
                       {monthLabel}
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      Semana {weekNumber}
+                      {weeklyPlan && `Semana ${weeklyPlan.weekNumber}`}
                     </p>
                   </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setWeekOffset((prev) => prev + 1)}
+                    onClick={() => shiftWeek(7)}
+                    aria-label="Próxima semana"
                     disabled={isLoading}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-7 gap-2" role="navigation" aria-label="Navegação semanal">
-                  {weekDays.map((day, index) => (
+                <div className="grid grid-cols-7 gap-1 sm:gap-2" role="navigation" aria-label="Navegação semanal">
+                  {weekDays.map((day) => (
                     <motion.button
-                      key={index}
+                      key={day.isoDate}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setSelectedDay(index)}
-                      aria-label={`${day.day} ${day.date}${day.isToday ? ' (hoje)' : ''}${selectedDay === index ? ' (selecionado)' : ''}`}
-                      aria-pressed={selectedDay === index}
+                      onClick={() => setTargetDate(day.isToday ? undefined : day.isoDate)}
+                      aria-label={`${day.day} ${day.date}${day.isToday ? " (hoje)" : ""}`}
+                      aria-pressed={selectedDate === day.isoDate}
                       className={cn(
-                        "flex flex-col items-center p-3 rounded-xl transition-all",
-                        selectedDay === index
+                        "flex min-w-0 flex-col items-center rounded-xl px-1 py-2 transition-all sm:p-3",
+                        selectedDate === day.isoDate
                           ? "bg-[var(--torii-red)] text-white"
                           : day.isToday
                             ? "bg-[var(--torii-red)]/10 border border-[var(--torii-red)]/30"
@@ -541,7 +571,7 @@ export default function PlannerPage() {
                         {day.day}
                       </span>
                       <span className="text-lg font-bold">{day.date}</span>
-                      {day.isToday && selectedDay !== index && (
+                      {day.isToday && selectedDate !== day.isoDate && (
                         <div className="w-1.5 h-1.5 rounded-full bg-[var(--torii-red)] mt-1" aria-hidden="true" />
                       )}
                     </motion.button>
@@ -563,7 +593,7 @@ export default function PlannerPage() {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-sm font-medium flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-[var(--torii-red)]" />
-                        Tarefas de Hoje
+                        {selectedDate === overview?.todayDate ? "Tarefas de Hoje" : "Tarefas do Dia"}
                       </CardTitle>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-[10px]">
@@ -580,7 +610,7 @@ export default function PlannerPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => void fetchOverview(undefined, true)}
+                          onClick={refreshTasks}
                           disabled={isLoading}
                         >
                           {isLoading ? (
@@ -617,8 +647,7 @@ export default function PlannerPage() {
                       </div>
                     ) : (
                       todayTasks.map((task, index) => {
-                        const completed =
-                          !!completedTaskIds[task.id] || !!task.completed
+                        const completed = completedTaskIds[task.id] ?? !!task.completed
                         const isPersistent = !task.id.startsWith("task-")
 
                         return (
@@ -700,6 +729,20 @@ export default function PlannerPage() {
                                 <Clock className="h-3 w-3" />
                                 {task.estimatedMinutes} min
                               </span>
+                              {isPersistent && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={(event) => {
+                                    event.stopPropagation()
+                                    openTaskEditor(task)
+                                  }}
+                                  aria-label={`Editar tarefa "${task.task}"`}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
                               {isPersistent && (
                                 <Button
                                   variant="ghost"
@@ -992,14 +1035,43 @@ export default function PlannerPage() {
         <AddTaskModal
           open={isAddTaskOpen}
           onOpenChange={setIsAddTaskOpen}
-          defaultDate={new Date().toISOString().split("T")[0]}
-          onTaskCreated={() => {
-            // Atualizar com a data atual para manter o Resumo de Hoje correto
-            const today = new Date().toISOString().split("T")[0]
-            void fetchOverview(today)
-            void fetchWeeklyPlan(today)
-          }}
+          defaultDate={selectedDate}
+          onTaskCreated={refreshTasks}
         />
+        <Dialog open={editTask !== null} onOpenChange={(open) => {
+          if (!open && !isSavingTask) setEditTask(null)
+        }}>
+          {editTask && (
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Editar tarefa</DialogTitle>
+                <DialogDescription>Altere o título, a data ou a duração estimada.</DialogDescription>
+              </DialogHeader>
+              <form className="space-y-4" onSubmit={saveTask}>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-task-title">Título</Label>
+                  <Input id="edit-task-title" required maxLength={300} value={editTask.title}
+                    disabled={isSavingTask} onChange={(event) => setEditTask({ ...editTask, title: event.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-task-date">Data</Label>
+                  <Input id="edit-task-date" required type="date" value={editTask.date}
+                    disabled={isSavingTask} onChange={(event) => setEditTask({ ...editTask, date: event.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-task-duration">Duração estimada em minutos</Label>
+                  <Input id="edit-task-duration" required type="number" min={1} max={720} value={editTask.duration}
+                    disabled={isSavingTask} onChange={(event) => setEditTask({ ...editTask, duration: event.target.value })} />
+                </div>
+                {editError && <p role="alert" className="text-sm text-destructive">{editError}</p>}
+                <DialogFooter>
+                  <Button variant="outline" type="button" disabled={isSavingTask} onClick={() => setEditTask(null)}>Cancelar</Button>
+                  <Button type="submit" disabled={isSavingTask}>{isSavingTask ? "Salvando..." : "Salvar alterações"}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          )}
+        </Dialog>
         {weeklyPlan && (
           <EditGoalsModal
             open={isEditGoalsOpen}

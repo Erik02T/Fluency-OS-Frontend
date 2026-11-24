@@ -167,13 +167,13 @@
   
   /* Japanese typography enhancements */
   .font-japanese {
-    font-family: 'Noto Serif JP', 'Yu Mincho', serif;
+    font-family: var(--font-noto-serif-jp), 'Yu Mincho', serif;
     font-feature-settings: "palt";
   }
   
   /* Kanji display styling */
   .kanji-display {
-    font-family: 'Noto Serif JP', serif;
+    font-family: var(--font-noto-serif-jp), 'Yu Mincho', serif;
     font-weight: 400;
     line-height: 1.2;
   }
@@ -246,10 +246,6 @@
 }
 
 /* Kanji background pattern */
-.kanji-pattern {
-  position: relative;
-}
-
 .kanji-pattern::before {
   content: "日本語";
   position: absolute;

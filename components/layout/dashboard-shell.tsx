@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
+import { MotionConfig } from "framer-motion"
 import { Sidebar } from "./sidebar"
 import { TopBar } from "./top-bar"
 import { CommandPalette } from "./command-palette"
@@ -24,27 +24,29 @@ export function DashboardShell({
   const { sidebarOpen } = useUIStore()
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Background Pattern */}
-      <div className="fixed inset-0 gradient-mesh pointer-events-none" />
-      <div className="fixed inset-0 kanji-pattern pointer-events-none" />
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-background">
+        <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute inset-0 gradient-mesh" />
+          <div className="absolute inset-0 kanji-pattern" />
+        </div>
 
-      {/* Sidebar */}
-      <Sidebar />
+        <div className="hidden md:contents">
+          <Sidebar />
+        </div>
 
-      {/* Main Content */}
-      <motion.main
-        initial={false}
-        animate={{ marginLeft: sidebarOpen ? 280 : 80 }}
-        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-        className="min-h-screen relative"
-      >
-        <TopBar title={title} subtitle={subtitle} kanji={kanji} />
-        <div className="p-6">{children}</div>
-      </motion.main>
+        <main
+          className={cn(
+            "min-h-screen min-w-0 relative motion-safe:transition-[margin-left] duration-300",
+            sidebarOpen ? "md:ml-[280px]" : "md:ml-20",
+          )}
+        >
+          <TopBar title={title} subtitle={subtitle} kanji={kanji} />
+          <div className="min-w-0 p-4 md:p-6">{children}</div>
+        </main>
 
-      {/* Command Palette */}
-      <CommandPalette />
-    </div>
+        <CommandPalette />
+      </div>
+    </MotionConfig>
   )
 }

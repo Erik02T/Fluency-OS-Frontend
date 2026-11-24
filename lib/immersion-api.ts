@@ -81,6 +81,22 @@ export interface ImmersionLogQueryParams {
   order?: "asc" | "desc"
 }
 
+export type UpdateImmersionLogPayload = Pick<CreateImmersionLogPayload,
+  "episode" | "notes" | "isActive"> & {
+  title?: string
+  durationMinutes?: number
+  comprehension?: number | null
+}
+
+export function comprehensionToStars(comprehension: number | null): number | null {
+  if (comprehension === null) return null
+  return Math.round(Math.max(0, Math.min(100, comprehension)) / 20)
+}
+
+export function starsToComprehension(stars: number): number {
+  return stars * 20
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 function buildQueryString(
@@ -224,6 +240,17 @@ export function getImmersionLogs(
       ...options,
       method: "GET",
     },
+    true,
+  )
+}
+
+export function updateImmersionLog(
+  id: string,
+  payload: UpdateImmersionLogPayload,
+): Promise<ImmersionLogResponseDto> {
+  return requestJson<ImmersionLogResponseDto>(
+    `/immersion/${encodeURIComponent(id)}`,
+    { method: "PATCH", body: JSON.stringify(payload) },
     true,
   )
 }

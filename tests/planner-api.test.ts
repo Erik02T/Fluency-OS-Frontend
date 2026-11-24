@@ -94,6 +94,8 @@ describe('planner-api client', () => {
 
     const result = await updateWeeklyGoals('plan-1', [
       { category: 'IMMERSION', targetValue: 450, unit: 'min' },
+      { category: 'KANJI', targetValue: 50, unit: '' },
+      { category: 'GRAMMAR', targetValue: 10 },
     ]);
 
     expect(fetchSpy).toHaveBeenCalledWith(
@@ -101,7 +103,11 @@ describe('planner-api client', () => {
       expect.objectContaining({
         method: 'PUT',
         body: JSON.stringify({
-          goals: [{ category: 'IMMERSION', targetValue: 450, unit: 'min' }],
+          goals: [
+            { category: 'IMMERSION', targetValue: 450, unit: 'min' },
+            { category: 'KANJI', targetValue: 50 },
+            { category: 'GRAMMAR', targetValue: 10 },
+          ],
         }),
       }),
     );
