@@ -33,6 +33,7 @@ export function useRestoreCatalogItem(cardId: string | null, ready: boolean) {
     }
 
     card.scrollIntoView({ block: "center" })
+    card.querySelector<HTMLAnchorElement>("a[data-catalog-detail-link]")?.focus()
   }, [cardId, ready])
 }
 
