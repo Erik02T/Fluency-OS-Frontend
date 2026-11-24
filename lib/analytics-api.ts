@@ -97,7 +97,9 @@ async function requestJson<T>(
   })
 
   if (response.status === 401 && includeAuthToken) {
+    options.signal?.throwIfAborted()
     const refreshedToken = await tryRefreshAdminSession()
+    options.signal?.throwIfAborted()
 
     if (refreshedToken) {
       updateStoredAccessToken(refreshedToken)
@@ -116,6 +118,7 @@ async function requestJson<T>(
   }
 
   if (shouldExpireSession) {
+    options.signal?.throwIfAborted()
     clearStoredAdminSession()
     emitAdminSessionExpired()
   }
@@ -139,11 +142,6 @@ export function getAnalyticsOverview(
   params: AnalyticsQueryParams = {},
   options: RequestInit = {},
 ): Promise<AnalyticsOverviewResponseDto> {
-  console.debug("[analytics-api] Fetching analytics overview:", {
-    period: params.period,
-    granularity: params.granularity,
-  })
-
   return requestJson<AnalyticsOverviewResponseDto>(
     `/analytics/overview${buildAnalyticsQuery(params)}`,
     {
