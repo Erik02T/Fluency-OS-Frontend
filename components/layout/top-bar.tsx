@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { useUIStore } from "@/store"
+import { useReviewQueueVersion, useUIStore } from "@/store"
 import { useAdminAuth } from "@/contexts/admin-auth-context"
 import { getReviewQueueCount } from "@/lib/review-api"
 
@@ -37,31 +37,34 @@ interface TopBarProps {
 export function TopBar({ title = "Dashboard", subtitle, kanji }: TopBarProps) {
   const router = useRouter()
   const { toggleCommandPalette, sidebarOpen } = useUIStore()
-  const { user, isAuthenticated, signOut } = useAdminAuth()
-  const [reviewCount, setReviewCount] = React.useState<number | null>(null)
+  const { user, isAuthenticated, isInitializing, signOut } = useAdminAuth()
+  const userId = user?.id
+  const queueVersion = useReviewQueueVersion()
+  const [reviewCountResult, setReviewCountResult] = React.useState<{ userId: string; total: number } | null>(null)
+  const reviewCount = reviewCountResult?.userId === userId ? reviewCountResult?.total ?? null : null
 
   React.useEffect(() => {
-    let isMounted = true
+    if (isInitializing || !userId) return
+    const owner = userId
+    const controller = new AbortController()
 
     async function loadReviewCount() {
       try {
-        const payload = await getReviewQueueCount()
-        if (isMounted) {
-          setReviewCount(payload.total)
+        const payload = await getReviewQueueCount({ signal: controller.signal })
+        if (!controller.signal.aborted) {
+          setReviewCountResult({ userId: owner, total: payload.total })
         }
       } catch {
-        if (isMounted) {
-          setReviewCount(null)
+        if (!controller.signal.aborted) {
+          setReviewCountResult(null)
         }
       }
     }
 
     void loadReviewCount()
 
-    return () => {
-      isMounted = false
-    }
-  }, [])
+    return () => controller.abort()
+  }, [isInitializing, userId, queueVersion])
 
   async function handleSignOut() {
     await signOut()
@@ -111,11 +114,12 @@ export function TopBar({ title = "Dashboard", subtitle, kanji }: TopBarProps) {
           <Button
             variant="default"
             onClick={() => router.push("/dashboard/review")}
+            aria-label={reviewCount === null ? "Revisar" : `Revisar, ${reviewCount} ${reviewCount === 1 ? "card pendente" : "cards pendentes"}`}
             className="bg-[var(--torii-red)] hover:bg-[var(--torii-red)]/90 text-white gap-2 h-9"
           >
             <Zap className="h-4 w-4" />
             <span className="hidden sm:inline">Revisar</span>
-            {reviewCount !== null && reviewCount > 0 && (
+            {reviewCount !== null && (
               <Badge
                 variant="secondary"
                 className="bg-white/20 text-white text-[10px] px-1.5"

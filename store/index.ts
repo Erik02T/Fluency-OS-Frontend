@@ -296,3 +296,9 @@ export const useReviewStore = create<ReviewState>((set) => ({
       error: null,
     }),
 }))
+
+export const useReviewQueueVersion = create<number>(() => 0)
+
+export function invalidateReviewQueue() {
+  useReviewQueueVersion.setState((version) => version + 1)
+}

@@ -12,6 +12,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 export type ReviewSessionStatus = "in_progress" | "completed" | "abandoned"
 export type ReviewItemType = "kanji" | "vocabulary" | "sentence"
+export type ReviewQueueItemType = Exclude<ReviewItemType, "sentence">
 
 export interface ReviewQueueKanjiItemDto {
   id: string
@@ -63,8 +64,8 @@ export interface ReviewQueueCountResponseDto {
 }
 
 export interface CreateReviewSessionDto {
-  session_type?: string
-  sessionType?: string
+  session_type?: "kanji" | "vocabulary"
+  sessionType?: "kanji" | "vocabulary"
   limit?: number
 }
 
@@ -96,6 +97,7 @@ export interface ReviewSessionResponseDto {
   started_at: string
   completed_at: string | null
   abandoned_at?: string | null
+  cards?: ReviewQueueItemDto[]
   answers?: ReviewAnswerItemDto[]
 }
 
@@ -184,11 +186,24 @@ function buildQueryString(params: Record<string, string | number | boolean | und
   return queryString ? `?${queryString}` : ""
 }
 
-async function requestJson<T>(
+export class ReviewApiError extends Error {
+  constructor(readonly status: number, message: string, readonly retryAfter: number | null = null) {
+    super(message)
+  }
+}
+
+export function getReviewErrorMessage(error: unknown, fallback: string) {
+  if (!(error instanceof ReviewApiError) || error.status !== 429) return fallback
+  return error.retryAfter
+    ? `Muitas requisições. Tente novamente em ${error.retryAfter} s.`
+    : "Muitas requisições. Aguarde alguns instantes e tente novamente."
+}
+
+async function request(
   path: string,
   options: RequestInit = {},
   includeAuthToken = false,
-): Promise<T> {
+): Promise<Response> {
   let shouldExpireSession = false
 
   const createHeaders = (token?: string | null): Headers => {
@@ -214,7 +229,9 @@ async function requestJson<T>(
   })
 
   if (response.status === 401 && includeAuthToken) {
+    options.signal?.throwIfAborted()
     const refreshedToken = await tryRefreshAdminSession()
+    options.signal?.throwIfAborted()
 
     if (refreshedToken) {
       updateStoredAccessToken(refreshedToken)
@@ -233,19 +250,38 @@ async function requestJson<T>(
   }
 
   if (shouldExpireSession) {
+    options.signal?.throwIfAborted()
     clearStoredAdminSession()
     emitAdminSessionExpired()
   }
 
   if (!response.ok) {
     const details = await response.text()
-    throw new Error(details || `Request failed with status ${response.status}`)
+    const retryAfter = Number(response.headers.get("Retry-After"))
+    throw new ReviewApiError(
+      response.status,
+      details || `Request failed with status ${response.status}`,
+      Number.isSafeInteger(retryAfter) && retryAfter > 0 ? retryAfter : null,
+    )
   }
 
+  return response
+}
+
+async function requestJson<T>(path: string, options: RequestInit, includeAuthToken: boolean): Promise<T> {
+  const response = await request(path, options, includeAuthToken)
   return (await response.json()) as T
 }
 
 // ─── Endpoints de Review ──────────────────────────────────────────────────────
+
+export async function enqueueReviewItem(itemType: ReviewQueueItemType, itemId: string, options: RequestInit = {}): Promise<void> {
+  await request("/review/queue", {
+    ...options,
+    method: "POST",
+    body: JSON.stringify({ item_type: itemType, item_id: itemId }),
+  }, true)
+}
 
 /**
  * GET /review/queue — Fila de itens vencidos para revisão

@@ -19,18 +19,24 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { DashboardShell } from "@/components/layout"
+import { useAdminAuth } from "@/contexts/admin-auth-context"
 import {
   getReviewQueue,
+  getReviewErrorMessage,
   createReviewSession,
+  getReviewHistory,
+  getReviewSession,
   submitReviewAnswer,
   endReviewSession,
   getReviewSessionStats,
   abandonReviewSession,
   type ReviewQueueItemDto,
+  type ReviewQueueResponseDto,
   type ReviewQueueKanjiItemDto,
   type ReviewQueueVocabularyItemDto,
+  type ReviewSessionResponseDto,
 } from "@/lib/review-api"
-import { useReviewStore } from "@/store"
+import { invalidateReviewQueue, useReviewQueueVersion, useReviewStore } from "@/store"
 
 // Variantes de animação
 const containerVariants = {
@@ -68,17 +74,18 @@ function formatDuration(seconds: number | null | undefined): string {
 }
 
 interface QueueViewProps {
-  items: ReviewQueueItemDto[]
+  queue: ReviewQueueResponseDto | null
   isLoading: boolean
   error: string | null
   onStart: (sessionType: "kanji" | "vocabulary") => void
   onReload: () => void
 }
 
-function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProps) {
-  const total = items.length
-  const kanjiCount = items.filter((i) => i.item_type === "kanji").length
-  const vocabCount = items.filter((i) => i.item_type === "vocabulary").length
+function QueueView({ queue, isLoading, error, onStart, onReload }: QueueViewProps) {
+  const items = queue?.items ?? []
+  const total = queue?.total_due
+  const kanjiCount = queue?.by_type.kanji ?? 0
+  const vocabCount = queue?.by_type.vocabulary ?? 0
 
   return (
     <motion.div
@@ -99,11 +106,11 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                 <div>
                   <h2 className="text-xl font-bold text-foreground">Sessão de Revisão</h2>
                   <p className="text-sm text-muted-foreground">
-                    {total > 0
+                    {isLoading ? "Carregando fila…" : total === undefined ? "Fila indisponível" : total > 0
                       ? `${total} ${total === 1 ? "card pendente" : "cards pendentes"} de revisão`
                       : "Nenhum card pendente agora"}
                   </p>
-                  {total > 0 && (
+                  {!isLoading && total !== undefined && total > 0 && (
                     <div className="flex gap-2 mt-2">
                       <Badge variant="outline" className="text-[10px]">
                         字 {kanjiCount}
@@ -118,7 +125,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="text-xs">
                   <Zap className="h-3 w-3 mr-1 text-[var(--torii-red)]" />
-                  {total} na fila
+                  {isLoading || total === undefined ? "—" : `${total} na fila`}
                 </Badge>
               </div>
             </div>
@@ -129,7 +136,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
       {error && (
         <motion.div variants={itemVariants}>
           <Card className="border-red-500/30 bg-red-500/5">
-            <CardContent className="py-3 text-sm text-red-400">{error}</CardContent>
+            <CardContent role="alert" className="py-3 text-sm text-red-400">{error}</CardContent>
           </Card>
         </motion.div>
       )}
@@ -143,9 +150,9 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                 <Brain className="h-4 w-4 text-[var(--neon-blue)]" />
                 Cards na Fila
               </CardTitle>
-              <Button variant="ghost" size="sm" className="text-xs" onClick={onReload}>
+              <Button variant="ghost" size="sm" className="text-xs" disabled={isLoading} onClick={onReload}>
                 <RotateCcw className="h-3 w-3 mr-1" />
-                Atualizar
+                {error ? "Tentar novamente" : "Atualizar"}
               </Button>
             </div>
           </CardHeader>
@@ -154,7 +161,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : items.length === 0 ? (
+            ) : !queue ? null : total === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mb-3">
                   <Check className="h-6 w-6 text-emerald-500" />
@@ -183,14 +190,14 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                       className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 border border-border/50"
                     >
                       <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center shrink-0">
-                        <span className="font-japanese text-lg text-foreground">
+                        <span lang="ja" className="font-japanese text-lg text-foreground">
                           {kanji?.character ?? (vocab ? vocab.word.charAt(0) : "字")}
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           {vocab && (
-                            <span className="font-japanese text-sm font-semibold text-foreground shrink-0">
+                            <span lang="ja" className="font-japanese text-sm font-semibold text-foreground shrink-0">
                               {vocab.word}
                             </span>
                           )}
@@ -198,7 +205,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                             {(kanji?.meanings.join(", ") ?? vocab?.meanings.join(", ") ?? "Item")}
                           </p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground font-mono">
+                        <p lang="ja" className="font-japanese text-[10px] text-muted-foreground">
                           {kanji?.readings.onyomi.join("、") || kanji?.readings.kunyomi.join("、") || (vocab?.reading ?? "—")}
                         </p>
                       </div>
@@ -211,9 +218,9 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
                     </div>
                   )
                 })}
-                {items.length > 8 && (
+                {(total ?? 0) > 8 && (
                   <p className="text-xs text-muted-foreground text-center pt-2">
-                    + {items.length - 8} cards na fila...
+                    + {(total ?? 0) - 8} cards na fila…
                   </p>
                 )}
               </div>
@@ -223,7 +230,7 @@ function QueueView({ items, isLoading, error, onStart, onReload }: QueueViewProp
       </motion.div>
 
       {/* Botões Iniciar por Tipo */}
-      {!isLoading && items.length > 0 && (
+      {!isLoading && total !== undefined && total > 0 && (
         <motion.div variants={itemVariants} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {kanjiCount > 0 && (
@@ -353,13 +360,13 @@ function SessionView({
             <div className="flex flex-col items-center text-center">
               {kanji ? (
                 <div className="w-24 h-24 rounded-2xl bg-secondary flex items-center justify-center mb-6">
-                  <span className="font-japanese text-6xl text-foreground">
+                  <span lang="ja" className="font-japanese text-6xl text-foreground">
                     {kanji.character}
                   </span>
                 </div>
               ) : (
                 <div className="min-w-[220px] max-w-full px-8 py-4 rounded-2xl bg-secondary flex items-center justify-center mb-6">
-                  <span className="font-japanese text-5xl text-foreground whitespace-nowrap">
+                  <span lang="ja" className="font-japanese text-5xl text-foreground whitespace-nowrap">
                     {vocab?.word ?? "復"}
                   </span>
                 </div>
@@ -398,7 +405,7 @@ function SessionView({
                       <p className="text-xs text-muted-foreground uppercase tracking-wider">
                         Leitura
                       </p>
-                      <p className="text-sm font-mono text-foreground">
+                      <p lang="ja" className="font-japanese text-sm text-foreground">
                         {vocab.reading}
                       </p>
                     </div>
@@ -410,7 +417,7 @@ function SessionView({
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">
                           Onyomi
                         </p>
-                        <p className="text-sm font-mono text-foreground">
+                        <p lang="ja" className="font-japanese text-sm text-foreground">
                           {kanji.readings.onyomi.join("、") || "—"}
                         </p>
                       </div>
@@ -418,7 +425,7 @@ function SessionView({
                         <p className="text-xs text-muted-foreground uppercase tracking-wider">
                           Kunyomi
                         </p>
-                        <p className="text-sm font-mono text-foreground">
+                        <p lang="ja" className="font-japanese text-sm text-foreground">
                           {kanji.readings.kunyomi.join("、") || "—"}
                         </p>
                       </div>
@@ -570,128 +577,214 @@ function ResultsView({ stats, onRestart }: ResultsViewProps) {
 }
 
 export default function ReviewPage() {
+  const { user, isInitializing } = useAdminAuth()
+  if (!user || isInitializing) {
+    return <DashboardShell title="Revisão" kanji="復">
+      <p role="status" className="text-sm text-muted-foreground">
+        {isInitializing ? "Restaurando sua sessão..." : "Entre para consultar suas revisões."}
+      </p>
+    </DashboardShell>
+  }
+  return <ReviewContent key={user.id} />
+}
+
+function ReviewContent() {
   const {
     queue,
     currentSession,
     currentIndex,
     progress,
     lastStats,
-    isLoading,
     error,
-    setQueueFromResponse,
-    setCurrentSession,
     syncSessionProgress,
     syncSessionState,
     setQueue,
     setCurrentIndex,
     setLastStats,
-    setLoading,
     setError,
     nextCard,
     resetSession,
   } = useReviewStore()
 
+  const queueVersion = useReviewQueueVersion()
+  const [dueQueue, setDueQueue] = React.useState<ReviewQueueResponseDto | null>(null)
+  const [isLoadingQueue, setIsLoadingQueue] = React.useState(true)
+  const [queueError, setQueueError] = React.useState<string | null>(null)
+  const [isRestoring, setIsRestoring] = React.useState(true)
+  const [restoreError, setRestoreError] = React.useState<string | null>(null)
+  const [restoreVersion, retryRestore] = React.useReducer((version: number) => version + 1, 0)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const operationInFlight = React.useRef(false)
+  const sessionController = React.useRef<AbortController | null>(null)
   const [view, setView] = React.useState<"queue" | "session" | "results">("queue")
+  const [statsError, setStatsError] = React.useState<string | null>(null)
+  const [statsVersion, retryStats] = React.useReducer((version: number) => version + 1, 0)
 
-  const loadQueue = React.useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await getReviewQueue()
-      setQueueFromResponse(response)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao carregar fila de revisão")
-    } finally {
-      setLoading(false)
-    }
-  }, [setLoading, setError, setQueueFromResponse])
+  const showSession = React.useCallback((session: ReviewSessionResponseDto) => {
+    const answered = new Set(session.answers?.map((answer) => `${answer.item_type}:${answer.item_id}`))
+    setQueue((session.cards ?? []).filter((card) => !answered.has(`${card.item_type}:${card.item.id}`)))
+    setCurrentIndex(0)
+    syncSessionState(session)
+    setView("session")
+  }, [setQueue, setCurrentIndex, syncSessionState])
 
   React.useEffect(() => {
-    void loadQueue()
-  }, [loadQueue])
+    const controller = new AbortController()
+    const { signal } = controller
+    sessionController.current = controller
+    resetSession()
+    setIsRestoring(true)
+    setRestoreError(null)
 
-  const handleStart = React.useCallback(
-    async (sessionType: "kanji" | "vocabulary") => {
-      setLoading(true)
-      setError(null)
+    async function restoreSession() {
       try {
-        const session = await createReviewSession({ session_type: sessionType })
-        // Filtra a fila apenas para o tipo da sessão iniciada
-        // para que o avanço automático percorra somente itens do tipo escolhido
-        const filteredQueue = queue.filter((i) => i.item_type === sessionType)
-        setQueue(filteredQueue)
-        setCurrentIndex(0)
-        setCurrentSession(session)
-        syncSessionState(session)
-        setView("session")
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Falha ao iniciar sessão")
-      } finally {
-        setLoading(false)
-      }
-    },
-    [queue, setQueue, setCurrentIndex, setLoading, setError, setCurrentSession, syncSessionState],
-  )
-
-  const handleAnswer = React.useCallback(
-    async (quality: number, responseTimeMs: number) => {
-      if (!currentSession || isSubmitting) return
-      const currentItem = queue[currentIndex]
-      if (!currentItem) return
-
-      setIsSubmitting(true)
-      setError(null)
-      try {
-        const itemId = (currentItem.item as { id?: string }).id ?? ""
-        const response = await submitReviewAnswer(currentSession.id, {
-          item_id: itemId,
-          item_type: currentItem.item_type,
-          answer_quality: quality,
-          response_time_ms: responseTimeMs,
-        })
-        syncSessionProgress(response)
-
-        // Se chegou ao fim da fila, finaliza a sessão
-        if (currentIndex + 1 >= queue.length) {
-          const ended = await endReviewSession(currentSession.id)
-          syncSessionState(ended)
-          const stats = await getReviewSessionStats(currentSession.id)
-          setLastStats(stats)
-          setView("results")
-        } else {
-          nextCard()
+        const history = await getReviewHistory({ status: "in_progress", perPage: 1 }, { signal })
+        const active = history.data[0]
+        if (!active || signal.aborted) return
+        const session = await getReviewSession(active.id, { signal })
+        if (!signal.aborted && session.status === "in_progress") showSession(session)
+      } catch (error) {
+        if (!signal.aborted) {
+          setRestoreError(getReviewErrorMessage(error, "Não foi possível verificar se há uma sessão em andamento."))
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Falha ao enviar resposta")
       } finally {
-        setIsSubmitting(false)
+        if (!signal.aborted) setIsRestoring(false)
       }
-    },
-    [currentSession, isSubmitting, queue, currentIndex, syncSessionProgress, nextCard, setError, syncSessionState, setLastStats],
-  )
+    }
+    void restoreSession()
+    return () => controller.abort()
+  }, [resetSession, restoreVersion, showSession])
 
-  const handleAbandon = React.useCallback(async () => {
-    if (!currentSession) return
-    setLoading(true)
+  React.useEffect(() => {
+    const controller = new AbortController()
+    const { signal } = controller
+    setIsLoadingQueue(true)
+    setQueueError(null)
+    getReviewQueue({ signal }).then(
+      (response) => {
+        if (!signal.aborted) setDueQueue(response)
+      },
+      (error: unknown) => {
+        if (signal.aborted) return
+        setDueQueue(null)
+        setQueueError(getReviewErrorMessage(error, "Não foi possível atualizar a fila de revisão."))
+      },
+    ).finally(() => {
+      if (!signal.aborted) setIsLoadingQueue(false)
+    })
+    return () => controller.abort()
+  }, [queueVersion])
+
+  const completedId = view === "results" ? currentSession?.id : undefined
+  React.useEffect(() => {
+    if (!completedId) return
+    const controller = new AbortController()
+    const { signal } = controller
+    setStatsError(null)
+    getReviewSessionStats(completedId, { signal }).then(
+      (stats) => {
+        if (!signal.aborted) setLastStats(stats)
+      },
+      (error: unknown) => {
+        if (!signal.aborted) setStatsError(getReviewErrorMessage(error, "Não foi possível carregar as estatísticas da sessão."))
+      },
+    )
+    return () => controller.abort()
+  }, [completedId, setLastStats, statsVersion])
+
+  async function runSessionOperation(
+    operation: (signal: AbortSignal) => Promise<void>,
+    failure: string,
+  ) {
+    const signal = sessionController.current?.signal
+    if (!signal || signal.aborted || operationInFlight.current) return
+    operationInFlight.current = true
+    setIsSubmitting(true)
     setError(null)
     try {
-      await abandonReviewSession(currentSession.id)
+      await operation(signal)
+    } catch (error) {
+      if (!signal.aborted) setError(getReviewErrorMessage(error, failure))
+    } finally {
+      operationInFlight.current = false
+      if (!signal.aborted) setIsSubmitting(false)
+    }
+  }
+
+  function handleReload() {
+    setError(null)
+    if (restoreError) retryRestore()
+    invalidateReviewQueue()
+  }
+
+  function handleStart(sessionType: "kanji" | "vocabulary") {
+    if (isRestoring || restoreError) return
+    return runSessionOperation(async (signal) => {
+      const session = await createReviewSession({ session_type: sessionType }, { signal })
+      if (!signal.aborted) showSession(session)
+    }, "Não foi possível iniciar a sessão.")
+  }
+
+  async function finishSession(sessionId: string, signal: AbortSignal) {
+    const ended = await endReviewSession(sessionId, { signal })
+    if (signal.aborted) return
+    syncSessionState(ended)
+    setLastStats(null)
+    setView("results")
+  }
+
+  function handleFinish() {
+    if (!currentSession) return
+    return runSessionOperation(
+      (signal) => finishSession(currentSession.id, signal),
+      "Não foi possível encerrar a sessão. Tente novamente.",
+    )
+  }
+
+  function handleAnswer(quality: number, responseTimeMs: number) {
+    const currentItem = queue[currentIndex]
+    const itemId = currentItem?.item.id
+    if (!currentSession || !currentItem || typeof itemId !== "string") return
+    return runSessionOperation(async (signal) => {
+      const response = await submitReviewAnswer(currentSession.id, {
+        item_id: itemId,
+        item_type: currentItem.item_type,
+        answer_quality: quality,
+        response_time_ms: responseTimeMs,
+      }, { signal })
+      if (signal.aborted) return
+      syncSessionProgress(response)
+      nextCard()
+      invalidateReviewQueue()
+      if (currentIndex + 1 === queue.length) {
+        try {
+          await finishSession(currentSession.id, signal)
+        } catch (error) {
+          if (!signal.aborted) {
+            const message = getReviewErrorMessage(error, "Tente encerrar a sessão novamente.")
+            setError(`Resposta registrada. ${message}`)
+          }
+        }
+      }
+    }, "Não foi possível enviar a resposta. Tente novamente.")
+  }
+
+  function handleAbandon() {
+    if (!currentSession) return
+    return runSessionOperation(async (signal) => {
+      await abandonReviewSession(currentSession.id, { signal })
+      if (signal.aborted) return
       resetSession()
       setView("queue")
-      void loadQueue()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao abandonar sessão")
-    } finally {
-      setLoading(false)
-    }
-  }, [currentSession, setLoading, setError, resetSession, loadQueue])
+      invalidateReviewQueue()
+    }, "Não foi possível abandonar a sessão. Tente novamente.")
+  }
 
-  const handleRestart = React.useCallback(() => {
+  function handleRestart() {
     resetSession()
     setView("queue")
-    void loadQueue()
-  }, [resetSession, loadQueue])
+    invalidateReviewQueue()
+  }
 
   const currentItem = queue[currentIndex]
 
@@ -705,11 +798,11 @@ export default function ReviewPage() {
         {view === "queue" && (
           <QueueView
             key="queue"
-            items={queue}
-            isLoading={isLoading}
-            error={error}
+            queue={restoreError ? null : dueQueue}
+            isLoading={isLoadingQueue || isRestoring || isSubmitting}
+            error={restoreError ?? queueError ?? error}
             onStart={handleStart}
-            onReload={loadQueue}
+            onReload={handleReload}
           />
         )}
 
@@ -717,8 +810,8 @@ export default function ReviewPage() {
           <SessionView
             key={`session-${currentItem.progress_id}`}
             item={currentItem}
-            index={currentIndex}
-            total={queue.length}
+            index={(currentSession?.total_items ?? queue.length) - queue.length + currentIndex}
+            total={currentSession?.total_items ?? queue.length}
             progress={progress}
             isSubmitting={isSubmitting}
             error={error}
@@ -727,12 +820,39 @@ export default function ReviewPage() {
           />
         )}
 
-        {view === "results" && lastStats && (
-          <ResultsView
-            key="results"
-            stats={lastStats}
-            onRestart={handleRestart}
-          />
+        {view === "session" && !currentItem && (
+          <div key="finish" className="space-y-3">
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            <Button disabled={isSubmitting} onClick={handleFinish}>Encerrar revisão</Button>
+          </div>
+        )}
+
+        {view === "results" && (
+          <div key="results" className="space-y-4">
+            <p role="status" className="text-sm text-muted-foreground">
+              {isLoadingQueue ? "Atualizando fila…" : dueQueue
+                ? `${dueQueue.total_due} na fila`
+                : "Contagem da fila indisponível"}
+            </p>
+            {lastStats ? (
+              <ResultsView stats={lastStats} onRestart={handleRestart} />
+            ) : (
+              <Card className="bg-card/60 border-border/50">
+                <CardContent className="p-6 space-y-3">
+                  <h2 className="text-xl font-semibold">Sessão concluída</h2>
+                  {statsError ? (
+                    <p role="alert" className="text-sm text-destructive">{statsError}</p>
+                  ) : (
+                    <p role="status" className="text-sm text-muted-foreground">Carregando estatísticas…</p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {statsError && <Button onClick={retryStats}>Tentar novamente</Button>}
+                    <Button variant="outline" onClick={handleRestart}>Voltar à fila</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         )}
       </AnimatePresence>
     </DashboardShell>
