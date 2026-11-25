@@ -436,8 +436,8 @@ Configuradas no `layout.tsx`:
 
 ### Configuração Principal (`next.config.mjs`)
 
--Typescript: `ignoreBuildErrors: true`
-- Images: `unotimized: true`
+- TypeScript: o build de produção inclui a checagem de tipos.
+- Images: `unoptimized: true`
 
 ### Componentes.json (shadcn/ui)
 
@@ -480,13 +480,22 @@ Configuração em `vitest.config.ts` com:
 
 ---
 
-## 🔌 Variáveis de Ambint
+## 🔌 Variáveis de Ambiente
 
 | Variável                    | Descrição                                  | Padrão               |
 | --------------------------- | ------------------------------------------ | ------------------- |
-| `NEXT_PUBLIC_API_URL`       | URL da API backend                        | `htp://localhost:3001` |
-| `AUTH_ROLE_COOKIE_SECRET`   | Segredo para assinar cookie de role (HMAC)| `JWT_SECRET` fallback|
-| `JWT_SECRET`                | Segredo JWT (fallback para role cookie)    | —                   |
+| `NEXT_PUBLIC_API_URL` | Base pública da API incorporada no build | `/api` em produção |
+| `API_UPSTREAM_URL` | Origem da API usada pelo proxy do Next no build | Obrigatória em produção |
+| `AUTH_ROLE_COOKIE_SECRET` | Segredo de HMAC dedicado, igual ao da API | Obrigatório em produção |
+| `JWT_SECRET`                | Fallback de desenvolvimento para o cookie | Ausente em produção                   |
+
+### Vercel
+
+Use a raiz do repositório, o framework Next.js, Node 22.x, `npm ci` e `npm run build`, com saída padrão do Next. Defina a branch de produção aprovada e configure Production e Preview em ambientes separados. Em cada um, use `NEXT_PUBLIC_API_URL=/api`, `API_UPSTREAM_URL` com a origem HTTPS pública do Render e `AUTH_ROLE_COOKIE_SECRET` somente no servidor, com o mesmo valor da API daquele ambiente. Alterações de variáveis exigem um novo build.
+
+O Next mantém a precedência das rotas internas. O rewrite encaminha `/api/auth/login` para `/auth/login` no Render e preserva os cookies da sessão no host do frontend. O middleware usa o segredo de perfil para proteger a navegação direta em `/dashboard/kanji/admin` e nas rotas equivalentes de Gramática e Vocabulário. O backend envia `Cache-Control: private, no-store` nas rotas dinâmicas da API.
+
+O arquivo vercel.json desativa deploys automáticos via Git. Crie o projeto com a publicação manual prevista e confira se a importação inicia um primeiro deploy. Registre o ID do deploy e confirme login, renovação, Admin, logout e foco nos três catálogos no domínio escolhido. [Variáveis na Vercel](https://vercel.com/docs/environment-variables)
 
 ---
 
