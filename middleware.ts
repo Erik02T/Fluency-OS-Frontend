@@ -6,8 +6,8 @@ import {
   DASHBOARD_ROUTE,
   SESSION_COOKIE_NAME,
   isAdminAppRoute,
-  parseSignedAuthRoleCookie,
 } from "@/lib/admin-routes"
+import { parseSignedAuthRoleCookie } from "@/lib/auth-role-cookie.server"
 
 function redirectToAdminLogin(request: NextRequest, pathname: string) {
   const loginUrl = request.nextUrl.clone()

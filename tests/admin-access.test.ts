@@ -4,9 +4,9 @@ import {
 } from "@/lib/navigation-features"
 import {
   isAdminAppRoute,
-  parseSignedAuthRoleCookie,
   resolveSafeAdminNextPath,
 } from "@/lib/admin-routes"
+import { parseSignedAuthRoleCookie } from "@/lib/auth-role-cookie.server"
 
 describe("admin navigation visibility", () => {
   it("hides admin items for guests and students", () => {
@@ -83,5 +83,17 @@ describe("admin route helpers", () => {
     await expect(parseSignedAuthRoleCookie(`ADMIN.${signature}`)).resolves.toBe("ADMIN")
     await expect(parseSignedAuthRoleCookie(`STUDENT.${signature}`)).resolves.toBeNull()
     await expect(parseSignedAuthRoleCookie("ADMIN.invalid")).resolves.toBeNull()
+  })
+
+  it("blocks cookie verification in production when only JWT_SECRET is configured", async () => {
+    vi.stubEnv("NODE_ENV", "production")
+    vi.stubEnv("AUTH_ROLE_COOKIE_SECRET", "")
+    vi.spyOn(console, "warn").mockImplementation(() => {})
+    const { createHmac } = await import("node:crypto")
+    const signature = createHmac("sha256", "outside-qa-secret")
+      .update("role:ADMIN")
+      .digest("base64url")
+
+    await expect(parseSignedAuthRoleCookie(`ADMIN.${signature}`)).resolves.toBeNull()
   })
 })
