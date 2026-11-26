@@ -30,16 +30,17 @@ import { cn } from "@/lib/utils"
 import {
   createKanji,
   deleteKanji,
-  getKanjiDetail,
+  getAdminKanjiDetail,
   getKanjiList,
   updateKanji,
   type CreateKanjiDto,
   type JLPTLevel,
   type ReadingType,
-  type KanjiDetailResponseDto,
+  type AdminKanjiDetailResponseDto,
   type KanjiListItemDto,
 } from "@/lib/kanji-api"
 import { useRequireAdmin } from "@/hooks/use-require-admin"
+import { getPrimaryRomaji } from "@/lib/kanji-admin-form"
 import {
   createEmptyExampleItem,
   createEmptyMeaningItem,
@@ -84,7 +85,7 @@ function emptyFormState(): KanjiStructuredFormState {
   }
 }
 
-function detailToForm(detail: KanjiDetailResponseDto): KanjiStructuredFormState {
+function detailToForm(detail: AdminKanjiDetailResponseDto): KanjiStructuredFormState {
   const onyomiReadings: ReadingFormItem[] = detail.readings.onyomi.map((item) => ({
     ...createEmptyReadingItem(),
     reading: item.reading,
@@ -106,7 +107,7 @@ function detailToForm(detail: KanjiDetailResponseDto): KanjiStructuredFormState 
     reading: item.reading,
     type: "NANORI",
     romanji: item.romanization,
-    isPrimary: false,
+    isPrimary: item.isCommon,
   }))
 
   const readings: ReadingFormItem[] = [
@@ -122,8 +123,8 @@ function detailToForm(detail: KanjiDetailResponseDto): KanjiStructuredFormState 
     grade: detail.grade ? String(detail.grade) : "",
     strokeCount: detail.strokes ? String(detail.strokes) : "",
     frequency: detail.frequency ? String(detail.frequency) : "",
-    notes: "",
-    romanization: onyomiReadings[0]?.romanji || kunyomiReadings[0]?.romanji || "",
+    notes: detail.notes ?? "",
+    romanization: detail.romanization ?? "",
     meanings: detail.meanings.length > 0
       ? detail.meanings.map((item) => ({
           ...createEmptyMeaningItem(),
@@ -183,7 +184,10 @@ function getValidationMessageForInteger(
   return null
 }
 
-function buildPayload(form: KanjiStructuredFormState): {
+function buildPayload(
+  form: KanjiStructuredFormState,
+  originalDetail: AdminKanjiDetailResponseDto | null,
+): {
   payload: CreateKanjiDto | null
   errors: FormErrors
 } {
@@ -293,8 +297,10 @@ function buildPayload(form: KanjiStructuredFormState): {
     grade: parseInteger(form.grade),
     strokeCount: parseInteger(form.strokeCount),
     frequency: parseInteger(form.frequency),
-    notes: form.notes.trim() || undefined,
-    romanization: form.romanization.trim() || undefined,
+    notes: form.notes === (originalDetail?.notes ?? "") ? undefined : form.notes,
+    romanization: form.romanization === (originalDetail?.romanization ?? "")
+      ? undefined
+      : form.romanization.trim(),
     meanings: form.meanings.map((item) => ({
       meaning: item.meaning.trim(),
       language: item.language.trim() || "pt-BR",
@@ -344,7 +350,7 @@ export default function KanjiAdminPage() {
   const [isLoadingList, setIsLoadingList] = React.useState(true)
   const [listError, setListError] = React.useState<string | null>(null)
   const [editingId, setEditingId] = React.useState<string | null>(null)
-  const [editingDetail, setEditingDetail] = React.useState<KanjiDetailResponseDto | null>(null)
+  const [editingDetail, setEditingDetail] = React.useState<AdminKanjiDetailResponseDto | null>(null)
   const [form, setForm] = React.useState<KanjiStructuredFormState>(emptyFormState)
   const [fieldErrors, setFieldErrors] = React.useState<FormErrors>({})
   const [isLoadingDetail, setIsLoadingDetail] = React.useState(false)
@@ -352,6 +358,7 @@ export default function KanjiAdminPage() {
   const [formMessage, setFormMessage] = React.useState<string | null>(null)
   const [isSaving, setIsSaving] = React.useState(false)
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const primaryRomaji = getPrimaryRomaji(form.readings)
 
   React.useEffect(() => {
     const initialEditId = new URLSearchParams(window.location.search).get("id")
@@ -430,7 +437,7 @@ export default function KanjiAdminPage() {
         setIsLoadingDetail(true)
         setFormError(null)
         setFieldErrors({})
-        const detail = await getKanjiDetail(currentEditId, { signal: controller.signal })
+        const detail = await getAdminKanjiDetail(currentEditId, { signal: controller.signal })
         if (isActive) {
           setEditingDetail(detail)
           setForm(detailToForm(detail))
@@ -462,7 +469,7 @@ export default function KanjiAdminPage() {
       setFormMessage(null)
       setFieldErrors({})
 
-      const { payload, errors } = buildPayload(form)
+      const { payload, errors } = buildPayload(form, editingDetail)
       if (!payload) {
         setFieldErrors(errors)
         setFormError("Existem campos inválidos. Revise os destaques e tente novamente.")
@@ -697,7 +704,8 @@ export default function KanjiAdminPage() {
                 </Field>
                 <Field label="Romanization" error={fieldErrors.romanization}>
                   <Input
-                    value={form.romanization}
+                    value={primaryRomaji ?? form.romanization}
+                    readOnly={primaryRomaji !== undefined}
                     onChange={(event) => setForm((current) => ({ ...current, romanization: event.target.value }))}
                     className="bg-secondary/40 border-border"
                   />

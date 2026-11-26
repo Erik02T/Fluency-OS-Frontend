@@ -66,6 +66,12 @@ export interface KanjiDetailRadicalDto {
   isPrimary: boolean
 }
 
+export interface AdminKanjiDetailResponseDto extends KanjiDetailResponseDto {
+  notes: string | null
+  romanization: string | null
+  readings: Omit<KanjiDetailResponseDto["readings"], "nanori"> & { nanori?: KanjiDetailReadingDto[] }
+}
+
 export interface KanjiDetailResponseDto {
   id: string
   character: string
@@ -412,11 +418,25 @@ export function studyKanji(
   return updateKanjiProgress(id, { action: "study" }, options)
 }
 
+export function getAdminKanjiDetail(
+  id: string,
+  options: RequestInit = {},
+): Promise<AdminKanjiDetailResponseDto> {
+  return requestJson<AdminKanjiDetailResponseDto>(
+    `/admin/kanjis/${id}`,
+    {
+      ...options,
+      method: "GET",
+    },
+    true,
+  )
+}
+
 export function createKanji(
   payload: CreateKanjiDto,
   options: RequestInit = {},
-): Promise<KanjiDetailResponseDto> {
-  return requestJson<KanjiDetailResponseDto>(
+): Promise<AdminKanjiDetailResponseDto> {
+  return requestJson<AdminKanjiDetailResponseDto>(
     `/admin/kanjis`,
     {
       ...options,
@@ -431,8 +451,8 @@ export function updateKanji(
   id: string,
   payload: UpdateKanjiDto,
   options: RequestInit = {},
-): Promise<KanjiDetailResponseDto> {
-  return requestJson<KanjiDetailResponseDto>(
+): Promise<AdminKanjiDetailResponseDto> {
+  return requestJson<AdminKanjiDetailResponseDto>(
     `/admin/kanjis/${id}`,
     {
       ...options,
